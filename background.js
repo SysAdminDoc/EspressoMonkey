@@ -6465,6 +6465,38 @@ ${req.code}
 (function() {
   'use strict';
   
+  // ============ Error Suppression for chrome://extensions ============
+  // Chrome shows console.error() calls on the extension error page
+  // Downgrade to console.warn() so userscript errors don't pollute extension errors
+  const __originalConsoleError = console.error.bind(console);
+  const __scriptLabel = '[Userscript: ' + ${JSON.stringify(meta.name || 'Unknown')} + ']';
+  
+  // Replace console.error with console.warn for this script's context
+  console.error = function(...args) {
+    // Convert to warning so it doesn't appear on chrome://extensions error page
+    console.warn(__scriptLabel, ...args);
+  };
+  
+  // Catch uncaught errors from this userscript
+  const __handleError = function(event) {
+    // Only suppress errors from userscript code (check if it's from our injected script)
+    if (event.filename === '' || event.filename?.includes('user_script') || !event.filename) {
+      console.warn(__scriptLabel, 'Uncaught error:', event.message);
+      event.preventDefault();
+      event.stopPropagation();
+      return true;
+    }
+  };
+  window.addEventListener('error', __handleError, true);
+  
+  // Catch unhandled promise rejections
+  const __handleRejection = function(event) {
+    console.warn(__scriptLabel, 'Unhandled rejection:', event.reason);
+    event.preventDefault();
+  };
+  window.addEventListener('unhandledrejection', __handleRejection, true);
+  // ============ End Error Suppression ============
+  
   const scriptId = ${JSON.stringify(script.id)};
   const meta = ${JSON.stringify(meta)};
   const grants = ${JSON.stringify(grants)};
@@ -7299,7 +7331,7 @@ ${libraryExports}
 
   const apiClose = `
     } catch (e) {
-      console.error('[EspressoMonkey] Error in ' + ${JSON.stringify(meta.name)} + ':', e);
+      console.warn('[EspressoMonkey] Error in ' + ${JSON.stringify(meta.name)} + ':', e);
     }
   })();
 })();
