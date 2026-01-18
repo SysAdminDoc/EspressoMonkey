@@ -212,7 +212,7 @@ EspressoMonkey takes security seriously:
 
 | Feature | EspressoMonkey | Tampermonkey | ViolentMonkey |
 |---------|----------------|--------------|---------------|
-| Manifest V3 | ✅ | ❌ MV2 | ✅ |
+| Manifest V3 | ✅ | ✅ | ✅ |
 | Full GM API | ✅ 24+ functions | ✅ | ✅ |
 | Cloud Sync | ✅ 5 providers | ✅ | ✅ |
 | Open Source | ✅ MIT | ❌ | ✅ |
