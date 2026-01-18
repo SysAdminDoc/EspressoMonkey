@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EspressoMonkey Dashboard</title>
+    <link rel="stylesheet" href="../lib/codemirror/codemirror.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/monokai.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/dracula.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/material-darker.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/nord.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/theme/ayu-dark.min.css">
+    <link rel="stylesheet" href="../lib/codemirror/addon/fold/foldgutter.css">
+    <link rel="stylesheet" href="../lib/codemirror/addon/dialog/dialog.css">
+    <link rel="stylesheet" href="../lib/codemirror/addon/search/matchesonscrollbar.css">
+    <link rel="stylesheet" href="../lib/codemirror/addon/lint/lint.css">
+    <style>
+        /* ============================================
+           Tampermonkey-Style Dark Theme
+           ============================================ */
+        :root {
+            --bg-body: #1a1a1a;
+            --bg-content: #242424;
+            --bg-section-header: #2a2a2a;
+            --bg-input: #1a1a1a;
+            --bg-button: #333;
+            --bg-button-hover: #444;
+            --bg-row-hover: #333;
+            --bg-row-alt: #222;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666;
+            --border-color: #444;
+            --border-section: #22c55e;
+            --accent-primary: #22c55e;
+            --accent-secondary: #60a5fa;
+            --accent-error: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f0f0;
+            --bg-content: #fff;
+            --bg-section-header: #f5f5f5;
+            --bg-input: #fff;
+            --bg-button: #e8e8e8;
+            --bg-button-hover: #ddd;
+            --bg-row-hover: #f5f5f5;
+            --bg-row-alt: #fafafa;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --border-color: #ccc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        a { color: var(--accent-secondary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ============================================
+           Header
+           ============================================ */
+        .tm-header {
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .tm-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .tm-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tm-logo img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .tm-logo-text h1 {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .tm-logo-text h1 sup {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-left: 5px;
+        }
+
+        .tm-logo-text small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .tm-header-icons a {
+            color: var(--text-muted);
+            margin-left: 10px;
+        }
+
+        .tm-header-icons a:hover { color: var(--text-primary); }
+        
+        /* Setup Warning Banner */
+        .setup-warning-banner {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+        
+        .setup-warning-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .setup-warning-icon {
+            font-size: 20px;
+        }
+        
+        .setup-warning-text {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .btn-warning {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .btn-warning:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .setup-warning-dismiss {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        
+        .setup-warning-dismiss:hover {
+            color: white;
+        }
+
+        /* Tabs */
+        .tm-tabs {
+            display: flex;
+            gap: 2px;
+        }
+
+        .tm-tab {
+            padding: 8px 16px;
+            background: var(--bg-section-header);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .tm-tab:hover {
+            background: var(--bg-button-hover);
+            color: var(--text-primary);
+        }
+
+        .tm-tab.active {
+            background: var(--bg-content);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--bg-content);
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           Content Area
+           ============================================ */
+        .tm-content {
+            background: var(--bg-content);
+            min-height: calc(100vh - 90px);
+        }
+
+        .tm-panel {
+            display: none;
+        }
+
+        .tm-panel.active {
+            display: block;
+        }
+
+        /* ============================================
+           Bulk Actions Toolbar (Tampermonkey-style)
+           ============================================ */
+        .bulk-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .bulk-toolbar .bulk-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-primary);
+        }
+
+        .bulk-toolbar .bulk-label {
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .bulk-toolbar .bulk-select {
+            padding: 4px 8px;
+            min-width: 180px;
+        }
+
+        .bulk-toolbar .bulk-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .bulk-toolbar .bulk-spacer {
+            flex: 1;
+        }
+
+        .bulk-toolbar .script-counter {
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 4px 8px;
+            background: var(--bg-input);
+            border-radius: 3px;
+        }
+
+        /* ============================================
+           Scripts Table
+           ============================================ */
+        .scripts-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: var(--bg-section-header);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .scripts-toolbar-left {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: var(--bg-button);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .toolbar-btn:hover { background: var(--bg-button-hover); }
+        .toolbar-btn.primary { background: var(--accent-primary); border-color: var(--accent-primary); color: #fff; }
+        .toolbar-btn.primary:hover { background: #1ea34f; }
+        .toolbar-btn svg { width: 14px; height: 14px; }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 220px;
+            padding: 5px 10px 5px 28px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .search-box input:focus { outline: none; border-color: var(--accent-primary); }
+
+        .search-box svg {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Table */
+        .scripts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .scripts-table th {
+            background: var(--bg-section-header);
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-section);
+        }
+
+        .scripts-table th.center,
+        .scripts-table td.center { text-align: center; }
+
+        .scripts-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .scripts-table tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+        .scripts-table tbody tr:hover { background: var(--bg-row-hover); }
+
+        .script-name { color: var(--text-primary); cursor: pointer; }
+        .script-name:hover { color: var(--accent-secondary); }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--text-muted);
+            border-radius: 18px;
+            transition: 0.2s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--accent-primary); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+        /* Feature Badges */
+        .feature-badges { display: flex; gap: 3px; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px; height: 18px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .badge-s { background: #3b82f6; }
+        .badge-x { background: #8b5cf6; }
+        .badge-c { background: #ec4899; }
+        .badge-t { background: #f59e0b; }
+
+        /* Action Icons */
+        .action-icons { display: flex; gap: 4px; }
+        .action-icon {
+            width: 22px; height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .action-icon:hover { color: var(--text-primary); background: var(--bg-button); }
+        .action-icon svg { width: 14px; height: 14px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 15px; opacity: 0.5; }
+        .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-secondary); }
+
+        /* ============================================
+           Settings/Utilities Sections
+           ============================================ */
+        .settings-section {
+            display: flex;
+            border-bottom: 1px solid var(--border-section);
+        }
+
+        .section-label {
+            width: 180px;
+            min-width: 180px;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 13px;
+            color: var(--accent-primary);
+            background: var(--bg-section-header);
+        }
+
+        .section-content {
+            flex: 1;
+            padding: 15px 20px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .setting-row:last-child { margin-bottom: 0; }
+
+        .setting-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .setting-row input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent-primary);
+        }
+
+        .setting-row .label-text {
+            min-width: 180px;
+            color: var(--text-secondary);
+        }
+
+        /* Form Controls */
+        .input-field, .select-field {
+            padding: 5px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .input-field.wide { width: 300px; }
+
+        .textarea-field {
+            width: 100%;
+            min-height: 100px;
+            padding: 8px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        .textarea-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--text-muted);
+            border-radius: 50%;
+            font-size: 10px;
+            color: var(--text-muted);
+            cursor: help;
+        }
+
+        .btn {
+            padding: 5px 12px;
+            background: var(--bg-button);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn:hover { background: var(--bg-button-hover); }
+        .btn-primary { background: var(--accent-primary); border-color: var(--accent-primary); color: #fff; }
+        .btn-primary:hover { background: #1ea34f; }
+        .btn-danger { background: var(--accent-error); border-color: var(--accent-error); color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-group { display: flex; gap: 8px; }
+
+        .color-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Enhanced Settings Styles */
+        .settings-section {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-label {
+            width: 200px;
+            min-width: 200px;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 14px;
+            font-style: italic;
+            color: var(--text-secondary);
+            background: var(--bg-section-header);
+        }
+
+        .section-content {
+            flex: 1;
+            padding: 15px 20px;
+            background: var(--bg-content);
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .setting-row:last-child { margin-bottom: 0; }
+
+        .setting-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .setting-row input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent-primary);
+        }
+
+        .setting-row .label-text {
+            min-width: 280px;
+            color: var(--text-secondary);
+        }
+
+        .sync-status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .sync-status.connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--accent-primary);
+        }
+
+        .sync-status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-error);
+        }
+
+        .sync-user {
+            color: var(--accent-secondary);
+            font-weight: 500;
+        }
+
+        .sync-provider-settings {
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* URL Override Patterns */
+        .url-overrides-section .url-override-group {
+            transition: opacity 0.2s;
+        }
+        
+        .url-override-group.disabled {
+            opacity: 0.5;
+        }
+        
+        .url-pattern-list {
+            line-height: 1.6;
+        }
+        
+        .url-pattern-list .pattern-item {
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 2px;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .url-pattern-editable {
+            padding: 8px;
+            min-height: 60px;
+        }
+        
+        .url-pattern-editable:empty::before {
+            content: 'No custom patterns defined';
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 11px;
+        }
+        
+        .url-pattern-editable .pattern-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            margin: 3px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-primary);
+        }
+        
+        .url-pattern-editable .pattern-tag.exclude {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .url-pattern-editable .pattern-tag .remove-pattern {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: bold;
+            padding: 0 2px;
+            border-radius: 2px;
+            transition: all 0.15s;
+        }
+        
+        .url-pattern-editable .pattern-tag .remove-pattern:hover {
+            color: var(--accent-error);
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        .url-pattern-input {
+            display: none;
+        }
+        
+        .url-pattern-input.visible {
+            display: block !important;
+        }
+        
+        .btn-sm {
+            padding: 3px 8px;
+            font-size: 11px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 900px) {
+            .settings-section {
+                flex-direction: column;
+            }
+            
+            .section-label {
+                width: 100%;
+                border-bottom: 2px solid var(--border-section);
+            }
+            
+            .setting-row .label-text {
+                min-width: 180px;
+            }
+        }
+
+        /* ============================================
+           Help Tab - Editor Shortcuts
+           ============================================ */
+        .shortcuts-container {
+            padding: 20px;
+        }
+
+        .shortcuts-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 8px 30px;
+            max-width: 600px;
+        }
+
+        .shortcut-key {
+            text-align: right;
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        .shortcut-desc {
+            color: var(--text-muted);
+        }
+
+        /* About Section */
+        .about-section {
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            margin-top: 30px;
+        }
+
+        .about-section img { width: 64px; height: 64px; margin-bottom: 15px; }
+        .about-section h2 { font-size: 20px; margin-bottom: 5px; }
+        .about-section .version { color: var(--text-muted); margin-bottom: 20px; }
+
+        .about-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 25px 0;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: bold; color: var(--accent-primary); }
+        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        .about-links { display: flex; justify-content: center; gap: 20px; }
+
+        /* ============================================
+           Editor Overlay
+           ============================================ */
+        .editor-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-body);
+            z-index: 200;
+            flex-direction: column;
+        }
+
+        .editor-overlay.active { display: flex; }
+
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .editor-title { font-size: 16px; font-weight: bold; }
+
+        .editor-actions { display: flex; gap: 8px; }
+
+        .editor-tabs {
+            display: flex;
+            padding: 0 20px;
+            background: var(--bg-section-header);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .editor-tab {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .editor-tab:hover { color: var(--text-primary); }
+        .editor-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+
+        .editor-body { flex: 1; display: flex; overflow: hidden; }
+        .editor-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .editor-panel { display: none; flex: 1; overflow: auto; }
+        .editor-panel.active { display: flex; flex-direction: column; }
+
+        .code-editor-wrapper { flex: 1; overflow: hidden; }
+        .CodeMirror { height: 100% !important; font-family: Consolas, Monaco, monospace; }
+
+        /* Script Info Panel */
+        .info-panel { padding: 20px; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px 20px;
+        }
+        .info-label { color: var(--text-muted); font-weight: bold; }
+        .info-value { color: var(--text-primary); word-break: break-word; }
+        .info-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .info-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--bg-section-header);
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+        .info-tag.grant { background: var(--accent-primary); color: #fff; }
+
+        /* Storage Panel */
+        .storage-panel { padding: 20px; }
+        .storage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .storage-list { display: flex; flex-direction: column; gap: 8px; }
+        .storage-item {
+            display: grid;
+            grid-template-columns: 180px 1fr auto;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-section-header);
+            border-radius: 4px;
+            align-items: center;
+        }
+        .storage-key { font-family: monospace; font-weight: bold; color: var(--accent-secondary); }
+        .storage-value { font-family: monospace; color: var(--text-primary); }
+
+        /* ============================================
+           Modal
+           ============================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-content {
+            background: var(--bg-content);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            min-width: 400px;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title { font-size: 14px; font-weight: bold; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-body { padding: 16px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border-color); }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; color: var(--text-secondary); font-size: 12px; }
+        .form-group .input-field { width: 100%; }
+
+        /* ============================================
+           Toast
+           ============================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--bg-content);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateX(120%);
+            transition: transform 0.3s;
+        }
+
+        .toast.show { transform: translateX(0); }
+        .toast-success { border-left: 4px solid var(--accent-primary); }
+        .toast-error { border-left: 4px solid var(--accent-error); }
+        .toast-info { border-left: 4px solid var(--accent-secondary); }
+        .toast-icon { font-size: 16px; }
+        .toast-message { font-size: 13px; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Sync Status Indicators */
+        .sync-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+        .sync-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+        .sync-status.connected { color: var(--accent-primary); }
+        .sync-status.connected::before { background: var(--accent-primary); }
+        .sync-status.disconnected { color: var(--text-muted); }
+        .sync-status.disconnected::before { background: var(--accent-error); }
+        .sync-user { color: var(--text-secondary); font-size: 12px; }
+        .sync-provider-settings { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+
+        /* Script Name with Favicon */
+        .script-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .script-favicon {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .script-favicon img {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
+        .script-favicon.favicon-fallback {
+            background: var(--bg-input);
+        }
+        .script-favicon.favicon-fallback::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 12h8v2H8v-2zm0 4h8v2H8v-2z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Site Icons */
+        .site-icons {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-wrap: nowrap;
+        }
+        .site-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .site-icon img {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
+        .site-icon-more {
+            width: 18px;
+            height: 16px;
+            background: var(--bg-input);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--text-muted);
+            cursor: help;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="tm-header">
+        <div class="tm-header-top">
+            <div class="tm-logo">
+                <img src="../images/icon48.png" alt="EspressoMonkey">
+                <div class="tm-logo-text">
+                    <h1>EspressoMonkey<sup>v1.0.0</sup></h1>
+                    <small>by <a href="#">Matt</a></small>
+                </div>
+            </div>
+            <div class="tm-header-icons">
+                <a href="https://github.com" target="_blank" title="GitHub">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <nav class="tm-tabs">
+            <button class="tm-tab active" data-tab="scripts">Installed Userscripts</button>
+            <button class="tm-tab" data-tab="settings">Settings</button>
+            <button class="tm-tab" data-tab="utilities">Utilities</button>
+            <button class="tm-tab" data-tab="help">Help</button>
+        </nav>
+    </header>
+    
+    <!-- Setup Warning Banner (Chrome 138+ / Developer Mode) -->
+    <div class="setup-warning-banner" id="setupWarningBanner" style="display: none;">
+        <div class="setup-warning-content">
+            <span class="setup-warning-icon">⚠️</span>
+            <div class="setup-warning-text">
+                <strong>Setup Required:</strong> User scripts are not enabled. 
+                For Chrome 138+, enable <strong>"Allow User Scripts"</strong> in extension settings. 
+                For older Chrome versions, enable <strong>Developer Mode</strong> in chrome://extensions.
+            </div>
+            <button class="btn btn-warning" id="btnSetupHelp">How to Enable</button>
+            <button class="setup-warning-dismiss" id="btnDismissWarning" title="Dismiss">×</button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <main class="tm-content">
+        <!-- Scripts Panel -->
+        <div id="scriptsPanel" class="tm-panel active">
+            <!-- Tampermonkey-style Bulk Actions Toolbar -->
+            <div class="bulk-toolbar">
+                <input type="checkbox" id="bulkSelectAll" class="bulk-checkbox" title="Select all visible scripts">
+                <span class="bulk-label">Apply this to all selected scripts:</span>
+                <select id="bulkActionSelect" class="select-field bulk-select">
+                    <option value="">-- Please choose an option --</option>
+                    <option value="toggle">Toggle Enable</option>
+                    <option value="export">Export</option>
+                    <option value="update">Trigger Update</option>
+                    <option value="reset">Factory Reset</option>
+                    <option value="delete">Delete</option>
+                </select>
+                <button class="btn bulk-btn" id="btnBulkApply">Start</button>
+                <div class="bulk-spacer"></div>
+                <span class="bulk-label">Filter by:</span>
+                <select id="filterSelect" class="select-field bulk-select">
+                    <option value="all">All</option>
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                </select>
+                <span class="script-counter" id="scriptCounter">0 scripts</span>
+            </div>
+            
+            <!-- Main Toolbar -->
+            <div class="scripts-toolbar">
+                <div class="scripts-toolbar-left">
+                    <button class="toolbar-btn primary" id="btnNewScript">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        New Script
+                    </button>
+                    <button class="toolbar-btn" id="btnImportScript">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Import
+                    </button>
+                    <button class="toolbar-btn" id="btnCheckUpdates">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                        Check Updates
+                    </button>
+                    <button class="toolbar-btn" id="btnExportAll">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export All
+                    </button>
+                </div>
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="scriptSearch" placeholder="Search scripts...">
+                </div>
+            </div>
+            <div class="scripts-table-container">
+                <table class="scripts-table">
+                    <thead>
+                        <tr>
+                            <th class="center" style="width:30px"><input type="checkbox" id="selectAllScripts"></th>
+                            <th class="center" style="width:40px">#</th>
+                            <th class="center" style="width:50px">Enabled</th>
+                            <th style="min-width:200px">Name</th>
+                            <th class="center" style="width:70px">Version</th>
+                            <th class="center" style="width:60px">Size</th>
+                            <th class="center" style="width:80px">Sites</th>
+                            <th class="center" style="width:80px">Features</th>
+                            <th class="center" style="width:50px">🏠</th>
+                            <th class="center" style="width:80px">Updated</th>
+                            <th class="center" style="width:60px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scriptTableBody"></tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display:none">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    <h3>No userscripts installed</h3>
+                    <p>Create a new script or import one to get started.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <!-- Settings Panel - Comprehensive Tampermonkey-style -->
+        <div id="settingsPanel" class="tm-panel">
+            <!-- General Section -->
+            <div class="settings-section">
+                <div class="section-label">General</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Config mode:</span>
+                        <select class="select-field" id="settingsConfigMode">
+                            <option value="beginner">Beginner</option>
+                            <option value="advanced" selected>Advanced</option>
+                        </select>
+                        <span class="help-icon" title="Beginner mode hides advanced options">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Language:</span>
+                        <select class="select-field" id="settingsLanguage" style="min-width: 180px;">
+                            <option value="auto">Auto (Browser Default)</option>
+                            <option value="en">English</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="ja">日本語 (Japanese)</option>
+                            <option value="pt">Português (Portuguese)</option>
+                            <option value="ru">Русский (Russian)</option>
+                            <option value="zh">中文 (Chinese)</option>
+                        </select>
+                        <span class="help-icon" title="Interface language - restart required for Chrome i18n strings">?</span>
+                    </div>
+                    <div class="setting-row" id="languageRestartNotice" style="display: none;">
+                        <div class="notice-box warning" style="padding: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 6px; font-size: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+                            <span>⚠️</span>
+                            <span>Language changed. Reload the extension page to apply.</span>
+                            <button class="btn btn-sm" id="btnReloadForLanguage" style="margin-left: auto; padding: 4px 12px; font-size: 11px;">Reload Now</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsAutoReload" checked> Auto reload pages</label>
+                        <span class="help-icon" title="Automatically reload the active page when a script changes">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsAnonymousStats"> Anonymous statistics</label>
+                        <span class="help-icon" title="Send anonymous usage statistics">!</span>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsDebugMode"> Debug scripts</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsShowFixedSource"> Show fixed source</label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Logging Level:</span>
+                        <select class="select-field" id="settingsLoggingLevel">
+                            <option value="off">Off</option>
+                            <option value="error" selected>Error</option>
+                            <option value="warn">Warning</option>
+                            <option value="info">Info</option>
+                            <option value="debug">Debug</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Trash Mode:</span>
+                        <select class="select-field" id="settingsTrashMode">
+                            <option value="disabled" selected>Disabled</option>
+                            <option value="1">1 day</option>
+                            <option value="7">7 days</option>
+                            <option value="30">30 days</option>
+                        </select>
+                        <span class="help-icon" title="Keep deleted scripts in trash for recovery">?</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appearance Section -->
+            <div class="settings-section">
+                <div class="section-label">Appearance</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Layout:</span>
+                        <select class="select-field" id="settingsLayout">
+                            <option value="dark" selected>Default - Darker</option>
+                            <option value="light">Default - Light</option>
+                            <option value="classic">Classic</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Custom CSS:</span>
+                        <span class="help-icon" title="Add custom CSS to the dashboard">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsCustomCss" placeholder="/* Custom CSS for the dashboard */" style="min-height: 100px;"></textarea>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Show update notification:</span>
+                        <select class="select-field" id="settingsUpdateNotify">
+                            <option value="changelog" selected>Open changelog</option>
+                            <option value="badge">Badge only</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Favicon Service:</span>
+                        <select class="select-field" id="settingsFaviconService">
+                            <option value="google" selected>Google</option>
+                            <option value="duckduckgo">DuckDuckGo</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveAppearance">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags Section -->
+            <div class="settings-section">
+                <div class="section-label">Tags</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsEnableTags"> Enable Tags</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Menu Section -->
+            <div class="settings-section">
+                <div class="section-label">Action Menu</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsHideDisabledPopup"> Hide disabled scripts</label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Columns:</span>
+                        <select class="select-field" id="settingsPopupColumns">
+                            <option value="1" selected>1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Userscript order:</span>
+                        <select class="select-field" id="settingsScriptOrder">
+                            <option value="auto" selected>Auto</option>
+                            <option value="name">Name</option>
+                            <option value="lastmod">Last Modified</option>
+                            <option value="position">Position</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Icon badge info:</span>
+                        <select class="select-field" id="settingsBadgeInfo">
+                            <option value="running" selected>All-time running instances</option>
+                            <option value="active">Active scripts only</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Icon badge color:</span>
+                        <input type="text" class="input-field" id="settingsBadgeColor" value="#ee3131" style="width: 100px;">
+                        <div class="color-preview" id="badgeColorPreview" style="width: 24px; height: 24px; border-radius: 50%; background: #ee3131; border: 1px solid var(--border-color);"></div>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveActionMenu">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Context Menu Section -->
+            <div class="settings-section">
+                <div class="section-label">Context Menu</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsEnableContextMenu" checked> Enable context menu</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsContextMenuRunAt" checked> Userscripts using @run-at context-menu</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsContextMenuCommands" checked> Userscript menu commands</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Userscript Search Section -->
+            <div class="settings-section">
+                <div class="section-label">Userscript Search</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Userscript Search integration:</span>
+                        <select class="select-field" id="settingsSearchIntegration">
+                            <option value="disabled" selected>Disabled</option>
+                            <option value="greasyFork">Greasy Fork</option>
+                            <option value="openUserJS">OpenUserJS</option>
+                        </select>
+                        <span class="help-icon" title="Search for scripts when visiting new sites">!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Userscript Update Section -->
+            <div class="settings-section">
+                <div class="section-label">Userscript Update</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsUpdateDisabled"> Update disabled scripts</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsSilentUpdate" checked> Don't ask me for simple script updates</label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Check Interval:</span>
+                        <select class="select-field" id="settingsCheckInterval">
+                            <option value="0">Never</option>
+                            <option value="12">Every 12 Hours</option>
+                            <option value="24" selected>Every Day</option>
+                            <option value="168">Every Week</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Hide notification after:</span>
+                        <select class="select-field" id="settingsNotifyHideAfter">
+                            <option value="0">Never</option>
+                            <option value="5">5 Seconds</option>
+                            <option value="15" selected>15 Seconds</option>
+                            <option value="30">30 Seconds</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Externals Section -->
+            <div class="settings-section">
+                <div class="section-label">Externals <span class="help-icon" title="@require and @resource URL handling">?</span></div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Update Interval:</span>
+                        <select class="select-field" id="settingsExternalsInterval">
+                            <option value="0" selected>Never</option>
+                            <option value="24">Every Day</option>
+                            <option value="168">Every Week</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Userscript Sync Section -->
+            <div class="settings-section">
+                <div class="section-label">Userscript Sync</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsEnableSync"> Enable Userscript Sync</label>
+                        <span class="help-icon" title="Sync scripts across devices">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Type:</span>
+                        <select class="select-field" id="settingsSyncType">
+                            <option value="browser" selected>Browser Sync</option>
+                            <option value="webdav">WebDAV</option>
+                            <option value="googledrive">Google Drive</option>
+                            <option value="dropbox">Dropbox</option>
+                            <option value="onedrive">OneDrive</option>
+                        </select>
+                    </div>
+                    
+                    <!-- WebDAV Settings (hidden by default) -->
+                    <div id="syncWebdavSettings" class="sync-provider-settings" style="display:none; margin-top: 10px; padding: 10px; background: var(--bg-input); border-radius: 4px;">
+                        <div class="setting-row">
+                            <span class="label-text">WebDAV URL:</span>
+                            <input type="text" class="input-field wide" id="settingsWebdavUrl" placeholder="https://your-server.com/dav/">
+                        </div>
+                        <div class="setting-row">
+                            <span class="label-text">Username:</span>
+                            <input type="text" class="input-field" id="settingsWebdavUsername" style="width:200px">
+                        </div>
+                        <div class="setting-row">
+                            <span class="label-text">Password:</span>
+                            <input type="password" class="input-field" id="settingsWebdavPassword" style="width:200px">
+                        </div>
+                    </div>
+                    
+                    <!-- OAuth Settings (hidden by default) -->
+                    <div id="syncOAuthSettings" class="sync-provider-settings" style="display:none; margin-top: 10px; padding: 10px; background: var(--bg-input); border-radius: 4px;">
+                        <div class="setting-row">
+                            <span class="label-text">Status:</span>
+                            <span id="oauthStatus" class="sync-status disconnected">Not connected</span>
+                        </div>
+                        <div class="setting-row" id="oauthUserRow" style="display:none">
+                            <span class="label-text">Account:</span>
+                            <span id="oauthUser" class="sync-user"></span>
+                        </div>
+                        <div class="setting-row">
+                            <button class="btn btn-primary" id="btnConnectOAuth">Connect</button>
+                            <button class="btn btn-danger" id="btnDisconnectOAuth" style="display:none">Disconnect</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-row" style="margin-top: 10px;">
+                        <button class="btn" id="btnSyncNow">Run now</button>
+                        <button class="btn" id="btnSyncReset">Reset</button>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Recent Sync Log:</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="syncLog" readonly style="min-height: 80px; font-family: monospace; font-size: 11px;"></textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveSync">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Section -->
+            <div class="settings-section">
+                <div class="section-label">Editor</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsEnableEditor" checked> Enable enhanced editor</label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Theme:</span>
+                        <select class="select-field" id="settingsEditorTheme">
+                            <option value="default" selected>Default</option>
+                            <option value="monokai">Monokai</option>
+                            <option value="dracula">Dracula</option>
+                            <option value="material-darker">Material Darker</option>
+                            <option value="nord">Nord</option>
+                            <option value="ayu-dark">Ayu Dark</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Font Size:</span>
+                        <select class="select-field" id="settingsEditorFontSize">
+                            <option value="80">80%</option>
+                            <option value="90">90%</option>
+                            <option value="100" selected>100%</option>
+                            <option value="110">110%</option>
+                            <option value="120">120%</option>
+                            <option value="140">140%</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Key Mapping:</span>
+                        <select class="select-field" id="settingsKeyMapping">
+                            <option value="default" selected>Windows</option>
+                            <option value="vim">Vim</option>
+                            <option value="emacs">Emacs</option>
+                            <option value="sublime">Sublime</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Indentation Width:</span>
+                        <select class="select-field" id="settingsIndentWidth">
+                            <option value="2">2</option>
+                            <option value="4" selected>4</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Tab Size:</span>
+                        <select class="select-field" id="settingsTabSize">
+                            <option value="2">2</option>
+                            <option value="4" selected>4</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Indent with:</span>
+                        <select class="select-field" id="settingsIndentWith">
+                            <option value="spaces" selected>Spaces</option>
+                            <option value="tabs">Tabs</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">TabMode:</span>
+                        <select class="select-field" id="settingsTabMode">
+                            <option value="indent" selected>Indent</option>
+                            <option value="shift">Shift</option>
+                            <option value="default">Default</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Highlight selection matches:</span>
+                        <select class="select-field" id="settingsHighlightMatches">
+                            <option value="cursor" selected>Cursor</option>
+                            <option value="selection">Selection</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsWordWrap" checked> Word wrap</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsReindent" checked> Re-indent on typing</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsAutoSave"> Save content when editor loses focus</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsNoSaveConfirm" checked> Don't show confirmation dialog on save</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsHighlightTrailingWhitespace" checked> Highlight trailing whitespace</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsTrimWhitespace" checked> Trim trailing whitespace from modified lines</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsLintOnType" checked> Automatic syntax check on typing</label>
+                        <span class="help-icon" title="Real-time JavaScript linting">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Automatic syntax check max size:</span>
+                        <input type="text" class="input-field" id="settingsLintMaxSize" value="1000000" style="width: 100px;">
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Custom Linter Config:</span>
+                        <span class="help-icon" title="ESLint configuration in JSON format">!</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsLinterConfig" placeholder="{}" style="min-height: 80px; font-family: monospace;"></textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveEditor">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="settings-section">
+                <div class="section-label">Security</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Content Script API:</span>
+                        <select class="select-field" id="settingsContentScriptAPI">
+                            <option value="userscripts" selected>UserScripts API</option>
+                            <option value="dynamic">Dynamic Content Script</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Default Sandbox Mode:</span>
+                        <select class="select-field" id="settingsDefaultSandboxMode">
+                            <option value="raw" selected>Raw (page context)</option>
+                            <option value="js">JavaScript (CSP bypass)</option>
+                            <option value="dom">DOM (extension context)</option>
+                        </select>
+                        <span class="help-icon" title="Raw: Full page access. JavaScript: Attempts CSP bypass. DOM: More secure, limited to DOM access.">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Allowed Sandbox Modes:</span>
+                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                            <label><input type="checkbox" id="settingsAllowSandboxRaw" checked> Raw</label>
+                            <label><input type="checkbox" id="settingsAllowSandboxJs" checked> JavaScript</label>
+                            <label><input type="checkbox" id="settingsAllowSandboxDom" checked> DOM</label>
+                        </div>
+                        <span class="help-icon" title="Which @sandbox modes scripts are allowed to use">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Modify existing content security policy (CSP) headers:</span>
+                        <select class="select-field" id="settingsModifyCSP">
+                            <option value="auto" selected>Auto</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <span class="help-icon" title="Allow scripts to bypass CSP restrictions">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Allow HTTP headers to be modified by scripts:</span>
+                        <select class="select-field" id="settingsAllowHttpHeaders">
+                            <option value="yes" selected>Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsHttpHeaderWarnings" checked> Show warnings when header modification fails</label>
+                        <span class="help-icon" title="Notify when another extension interferes with GM_xmlhttpRequest headers">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Default tab types to run scripts in:</span>
+                        <select class="select-field" id="settingsDefaultTabTypes">
+                            <option value="all" selected>All tabs</option>
+                            <option value="normal">Normal tabs only</option>
+                            <option value="incognito">Incognito only</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Allow scripts to access local files:</span>
+                        <select class="select-field" id="settingsAllowLocalFiles">
+                            <option value="all" selected>All local files</option>
+                            <option value="ask">Ask</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="settingsAllowFileUrls"> Allow file:// URLs in @require (local development)</label>
+                        <span class="help-icon" title="Enable to use @require file://C:/path/to/script.js for local development. Requires 'Allow access to file URLs' in chrome://extensions">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Allow scripts to access cookies:</span>
+                        <select class="select-field" id="settingsAllowCookies">
+                            <option value="all" selected>All</option>
+                            <option value="matching">Matching only</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Allow communication with cooperate pages:</span>
+                        <select class="select-field" id="settingsAllowCommunication">
+                            <option value="version" selected>EspressoMonkey + script version</option>
+                            <option value="minimal">EspressoMonkey only</option>
+                            <option value="none">None</option>
+                        </select>
+                        <span class="help-icon" title="External message communication">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Subresource Integrity:</span>
+                        <select class="select-field" id="settingsSRI">
+                            <option value="validate" selected>Validate if possible</option>
+                            <option value="require">Require</option>
+                            <option value="ignore">Ignore</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Userscript @include Mode:</span>
+                        <select class="select-field" id="settingsIncludeMode">
+                            <option value="default" selected>Default</option>
+                            <option value="glob">Glob</option>
+                            <option value="regex">Regex</option>
+                        </select>
+                        <span class="help-icon" title="Pattern matching mode for @include">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Check @connect:</span>
+                        <select class="select-field" id="settingsCheckConnect">
+                            <option value="ask" selected>Ask if unknown</option>
+                            <option value="allow">Allow all</option>
+                            <option value="deny">Deny unknown</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Store data in incognito mode:</span>
+                        <select class="select-field" id="settingsIncognitoStorage">
+                            <option value="temporary" selected>Temporary</option>
+                            <option value="persistent">Persistent</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Page Filter Mode:</span>
+                        <select class="select-field" id="settingsPageFilterMode">
+                            <option value="blacklist" selected>Blacklist</option>
+                            <option value="whitelist">Whitelist</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Whitelisted Pages:</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsWhitelistedPages" placeholder="/https?:\/\/greasyfork\.org\/.*/" style="min-height: 100px; font-family: monospace;">/https?:\/\/greasyfork\.org\/.*/
+http://xkcd.com/970/
+/https?:\/\/chromewebstore\.google\.com\/.*/</textarea>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Blacklisted Pages:</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsBlacklistedPages" placeholder="*example.org/*" style="min-height: 120px; font-family: monospace;">*example.org/*
+*paypal.tld/*
+*stripe.com/*
+https://*deutsche-bank-24.tld/*
+https://*bankofamerica.tld/*
+/^.*:\/\/apis\.google\.com\/((?!render)([^\/]+)\/)+([^\/]+)?$/
+*://www.facebook.com/plugins/*
+*://platform.twitter.com/widgets/*
+https://vscode.dev/?connectTo=tampermonkey</textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveSecurity">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Runtime Host Permissions Section -->
+            <div class="settings-section">
+                <div class="section-label">Runtime Host Permissions</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Host permissions denied by user:</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsDeniedHosts" readonly placeholder="&lt;No previously denied runtime host permissions found&gt;" style="min-height: 80px;"></textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnGrantSelected">Grant Selected</button>
+                        <button class="btn" id="btnGrantAll">Grant All</button>
+                        <button class="btn" id="btnResetPermissions">Reset List</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BlackCheck Section -->
+            <div class="settings-section">
+                <div class="section-label">BlackCheck</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Userscript Blacklist Source:</span>
+                        <select class="select-field" id="settingsBlacklistSource">
+                            <option value="both" selected>Remote + Manual</option>
+                            <option value="remote">Remote only</option>
+                            <option value="manual">Manual only</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Blacklist Severity:</span>
+                        <select class="select-field" id="settingsBlacklistSeverity">
+                            <option value="low">Low (warn but allow)</option>
+                            <option value="medium" selected>Medium (block with override)</option>
+                            <option value="high">High (always block)</option>
+                        </select>
+                        <span class="help-icon" title="Low: Shows warning but allows script to run. Medium: Blocks with 'Override' option. High: Always blocks, no override.">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Manual Userscript and @require Blacklist:</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsManualBlacklist" placeholder="/^https?:\/\/example\.com(:[0-9]{1,5})?\/.*/" style="min-height: 100px; font-family: monospace;">/^https?:\/\/example\.com(:[0-9]{1,5})?\/.*/ </textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveBlackCheck">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Downloads BETA Section -->
+            <div class="settings-section">
+                <div class="section-label">Downloads BETA</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Download Mode:</span>
+                        <select class="select-field" id="settingsDownloadMode">
+                            <option value="default" selected>Default</option>
+                            <option value="native">Native</option>
+                            <option value="browser">Browser</option>
+                        </select>
+                        <span class="help-icon" title="How GM_download handles file downloads">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">Whitelisted File Extensions:</span>
+                        <span class="help-icon" title="Regex patterns for allowed file extensions">?</span>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="settingsDownloadWhitelist" style="min-height: 180px; font-family: monospace;">/^[^\.].*$/
+/\.(mp[34a]|m4[ab]|m3u|wma|wav|aac|og[ag]|cda|flac)$/
+/\.(avi|mkv|flv|divx|mpe?g|webm)$/
+/\.(jpe?g|jpe|png|gif|bmp|tiff?|webp|hei[cf]|avif|jxl|svg|eps|ai|ico|dds|psd|xcf|raw|cr2|nef|arw)$/
+/\.(srt|sub|idx)$/
+/\.(ttf|otf|woff)$/
+/\.(txt|pdf|json|yml|xml|csv)$/
+.iso
+/\.(zip|tgz|tar|bin)$/
+/\.r(ar|[0-9]{2,2})$/
+.rss</textarea>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn" id="btnSaveDownloads">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experimental Section -->
+            <div class="settings-section">
+                <div class="section-label">Experimental</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">strict mode:</span>
+                        <select class="select-field" id="settingsStrictMode">
+                            <option value="default" selected>Default</option>
+                            <option value="enabled">Enabled</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="label-text">top-level await:</span>
+                        <select class="select-field" id="settingsTopLevelAwait">
+                            <option value="default" selected>Default</option>
+                            <option value="enabled">Enabled</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reset Section -->
+            <div class="settings-section">
+                <div class="section-label">Reset</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <button class="btn" id="btnRestartExtension">Restart EspressoMonkey</button>
+                    </div>
+                    <div class="setting-row">
+                        <button class="btn btn-danger" id="btnFactoryReset">Factory Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Utilities Panel -->
+        <div id="utilitiesPanel" class="tm-panel">
+            <div class="settings-section">
+                <div class="section-label">General</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="exportIncludeStorage" checked> Include script storage</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="exportIncludeSettings"> Include EspressoMonkey settings</label>
+                    </div>
+                    <div class="setting-row">
+                        <label><input type="checkbox" id="exportIncludeResources" checked> Include external script resources</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">Cloud</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Type:</span>
+                        <select class="select-field" id="cloudExportType">
+                            <option value="webdav">WebDAV</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="btn-group">
+                            <button class="btn" id="btnCloudExport">Export</button>
+                            <button class="btn" id="btnCloudShowBackups">Show backups</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">Import from file</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <input type="file" id="importFileInput" accept=".json,.zip,.user.js,.js" style="display:none">
+                        <button class="btn" id="btnChooseFile">Choose File</button>
+                        <span id="importFileName" style="margin-left:10px;color:var(--text-muted)">No file chosen</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">Zip</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <button class="btn" id="btnExportZip">Export</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">File</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <button class="btn" id="btnExportAll">Export</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">TextArea</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <div class="btn-group">
+                            <button class="btn" id="btnTextareaExport">Export</button>
+                            <button class="btn" id="btnTextareaImport">Import</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <textarea class="textarea-field" id="textareaData" style="min-height:150px" placeholder="Paste JSON data here..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">Import from URL</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <input type="text" class="input-field wide" id="importUrlInput" placeholder="https://example.com/script.user.js">
+                        <button class="btn" id="btnInstallFromUrl" style="margin-left:10px">Install</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-label">External Editor</div>
+                <div class="section-content">
+                    <div class="setting-row">
+                        <span class="label-text">Quick script clipboard operations:</span>
+                    </div>
+                    <div class="setting-row">
+                        <select class="select-field" id="externalEditorScript" style="flex: 1; margin-right: 10px;">
+                            <option value="">Select a script...</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="btn-group">
+                            <button class="btn" id="btnCopyToClipboard" title="Copy selected script code to clipboard">📋 Copy to Clipboard</button>
+                            <button class="btn" id="btnImportFromClipboard" title="Update selected script from clipboard">📥 Import from Clipboard</button>
+                            <button class="btn" id="btnOpenInVSCode" title="Open in vscode.dev (copies code first)">🔗 Open in vscode.dev</button>
+                        </div>
+                    </div>
+                    <div class="setting-row" style="margin-top: 10px;">
+                        <span style="color: var(--text-muted); font-size: 12px;">
+                            💡 For local file development: Add <code style="background: var(--bg-input); padding: 2px 5px; border-radius: 3px;">@require file://C:/path/to/script.js</code> to your script. 
+                            Enable "Allow file:// URLs" in Security settings and "Allow access to file URLs" in chrome://extensions.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div id="helpPanel" class="tm-panel">
+            <div class="shortcuts-container">
+                <div class="shortcuts-title">Editor</div>
+                <div class="shortcuts-grid">
+                    <span class="shortcut-key">Key Mapping</span>
+                    <span class="shortcut-desc"><em>windows</em></span>
+                    <span class="shortcut-key">Alt-Up</span>
+                    <span class="shortcut-desc">Move Line Up</span>
+                    <span class="shortcut-key">Alt-Down</span>
+                    <span class="shortcut-desc">Move Line Down</span>
+                    <span class="shortcut-key">Alt-Left</span>
+                    <span class="shortcut-desc">Previous Tab</span>
+                    <span class="shortcut-key">Alt-Right</span>
+                    <span class="shortcut-desc">Next Tab</span>
+                    <span class="shortcut-key">Ctrl-Up</span>
+                    <span class="shortcut-desc">Line Up</span>
+                    <span class="shortcut-key">Ctrl-Down</span>
+                    <span class="shortcut-desc">Line Down</span>
+                    <span class="shortcut-key">Ctrl-Left</span>
+                    <span class="shortcut-desc">Group Left</span>
+                    <span class="shortcut-key">Ctrl-Right</span>
+                    <span class="shortcut-desc">Group Right</span>
+                    <span class="shortcut-key">F2</span>
+                    <span class="shortcut-desc">Next Bookmark</span>
+                    <span class="shortcut-key">F3</span>
+                    <span class="shortcut-desc">Find Next</span>
+                    <span class="shortcut-key">F4</span>
+                    <span class="shortcut-desc">Find Previous</span>
+                    <span class="shortcut-key">F8</span>
+                    <span class="shortcut-desc">Next Problem</span>
+                    <span class="shortcut-key">Ctrl-F2</span>
+                    <span class="shortcut-desc">Select Bookmarks</span>
+                    <span class="shortcut-key">Ctrl-Alt-F2</span>
+                    <span class="shortcut-desc">Toggle</span>
+                    <span class="shortcut-key">Shift-F2</span>
+                    <span class="shortcut-desc">Previous Bookmark</span>
+                    <span class="shortcut-key">Shift-F3</span>
+                    <span class="shortcut-desc">Find Previous</span>
+                    <span class="shortcut-key">Shift-F8</span>
+                    <span class="shortcut-desc">Previous Problem</span>
+                    <span class="shortcut-key">Shift-Ctrl-F2</span>
+                    <span class="shortcut-desc">Clear All</span>
+                    <span class="shortcut-key">Ctrl-Backspace</span>
+                    <span class="shortcut-desc">Delete to Previous Word Boundary</span>
+                    <span class="shortcut-key">Ctrl-Delete</span>
+                    <span class="shortcut-desc">Delete to Next Word Boundary</span>
+                    <span class="shortcut-key">Ctrl-Home</span>
+                    <span class="shortcut-desc">Document Start</span>
+                    <span class="shortcut-key">Alt-Pause</span>
+                    <span class="shortcut-desc">Next Theme</span>
+                    <span class="shortcut-key">Ctrl-Space</span>
+                    <span class="shortcut-desc">Autocomplete</span>
+                    <span class="shortcut-key">Ctrl-End</span>
+                    <span class="shortcut-desc">Document End</span>
+                    <span class="shortcut-key">Esc</span>
+                    <span class="shortcut-desc">Back or Close</span>
+                    <span class="shortcut-key">Tab</span>
+                    <span class="shortcut-desc">Indent</span>
+                    <span class="shortcut-key">Ctrl-A</span>
+                    <span class="shortcut-desc">Select All</span>
+                    <span class="shortcut-key">Ctrl-S</span>
+                    <span class="shortcut-desc">Save Script</span>
+                    <span class="shortcut-key">Ctrl-F</span>
+                    <span class="shortcut-desc">Find</span>
+                    <span class="shortcut-key">Ctrl-H</span>
+                    <span class="shortcut-desc">Replace</span>
+                    <span class="shortcut-key">Ctrl-Z</span>
+                    <span class="shortcut-desc">Undo</span>
+                    <span class="shortcut-key">Ctrl-Y</span>
+                    <span class="shortcut-desc">Redo</span>
+                </div>
+            </div>
+
+            <div class="about-section">
+                <img src="../images/icon128.png" alt="EspressoMonkey">
+                <h2>EspressoMonkey</h2>
+                <p class="version">Version 1.0.0</p>
+                <p>A lightweight userscript manager for Chrome.</p>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalScripts">0</div>
+                        <div class="stat-label">Total Scripts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statActiveScripts">0</div>
+                        <div class="stat-label">Active Scripts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalStorage">0 B</div>
+                        <div class="stat-label">Storage Used</div>
+                    </div>
+                </div>
+                <div class="about-links">
+                    <a href="https://github.com" target="_blank">GitHub</a>
+                    <a href="https://greasyfork.org" target="_blank">GreasyFork</a>
+                    <a href="https://openuserjs.org" target="_blank">OpenUserJS</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Editor Overlay -->
+    <div class="editor-overlay" id="editorOverlay">
+        <div class="editor-header">
+            <span class="editor-title" id="editorTitle">Edit Script</span>
+            <div class="editor-actions">
+                <button class="btn" id="btnEditorSave">💾 Save</button>
+                <button class="btn" id="btnEditorToggle">Disable</button>
+                <button class="btn" id="btnEditorDuplicate">Duplicate</button>
+                <button class="btn btn-danger" id="btnEditorDelete">Delete</button>
+                <button class="btn" id="btnEditorClose">✕ Close</button>
+            </div>
+        </div>
+        <div class="editor-tabs">
+            <button class="editor-tab active" data-panel="code">Code</button>
+            <button class="editor-tab" data-panel="info">Info</button>
+            <button class="editor-tab" data-panel="storage">Storage</button>
+            <button class="editor-tab" data-panel="scriptsettings">Settings</button>
+        </div>
+        <div class="editor-body">
+            <div class="editor-main">
+                <div id="codePanel" class="editor-panel active">
+                    <div class="code-editor-wrapper">
+                        <textarea id="editorTextarea"></textarea>
+                    </div>
+                </div>
+                <div id="infoPanel" class="editor-panel">
+                    <div class="info-panel">
+                        <div class="info-grid">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value" id="infoName">-</span>
+                            <span class="info-label">Version:</span>
+                            <span class="info-value" id="infoVersion">-</span>
+                            <span class="info-label">Author:</span>
+                            <span class="info-value" id="infoAuthor">-</span>
+                            <span class="info-label">Description:</span>
+                            <span class="info-value" id="infoDescription">-</span>
+                            <span class="info-label">Homepage:</span>
+                            <span class="info-value" id="infoHomepage">-</span>
+                            <span class="info-label">Update URL:</span>
+                            <span class="info-value" id="infoUpdateUrl">-</span>
+                            <span class="info-label">Grants:</span>
+                            <div class="info-tags" id="infoGrants">-</div>
+                            <span class="info-label">Matches:</span>
+                            <div class="info-tags" id="infoMatches">-</div>
+                            <span class="info-label">Resources:</span>
+                            <div class="info-value" id="infoResources">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="storagePanel" class="editor-panel">
+                    <div class="storage-panel">
+                        <div class="storage-header">
+                            <span>Script Storage</span>
+                            <div style="display:flex;align-items:center;gap:15px">
+                                <span id="storageSizeInfo" style="color:var(--text-muted);font-size:12px">0 B used</span>
+                                <button class="btn" id="btnAddStorage">+ Add Value</button>
+                            </div>
+                        </div>
+                        <div class="storage-list" id="storageList"></div>
+                    </div>
+                </div>
+                <div id="scriptsettingsPanel" class="editor-panel">
+                    <div class="script-settings-panel" style="padding: 20px; overflow-y: auto; max-height: calc(100vh - 200px);">
+                        <h3 style="margin-bottom: 20px; color: var(--text-primary);">Per-Script Settings</h3>
+                        
+                        <div class="settings-section" style="margin-bottom: 20px;">
+                            <div class="section-label">Updates</div>
+                            <div class="section-content">
+                                <div class="setting-row">
+                                    <label><input type="checkbox" id="scriptAutoUpdate" checked> Auto-update this script</label>
+                                </div>
+                                <div class="setting-row">
+                                    <label><input type="checkbox" id="scriptNotifyUpdates" checked> Notify when updated</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section" style="margin-bottom: 20px;">
+                            <div class="section-label">Execution</div>
+                            <div class="section-content">
+                                <div class="setting-row">
+                                    <span class="label-text">Run at:</span>
+                                    <select class="select-field" id="scriptRunAt" style="width: 180px;">
+                                        <option value="default">Default (from metadata)</option>
+                                        <option value="document-start">Document Start</option>
+                                        <option value="document-end">Document End</option>
+                                        <option value="document-idle">Document Idle</option>
+                                    </select>
+                                </div>
+                                <div class="setting-row">
+                                    <span class="label-text">Inject into:</span>
+                                    <select class="select-field" id="scriptInjectInto" style="width: 180px;">
+                                        <option value="auto">Auto</option>
+                                        <option value="page">Page context</option>
+                                        <option value="content">Content script context</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section" style="margin-bottom: 20px;">
+                            <div class="section-label">Notifications</div>
+                            <div class="section-content">
+                                <div class="setting-row">
+                                    <label><input type="checkbox" id="scriptNotifyErrors"> Notify on script errors</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- URL Overrides - Tampermonkey-style -->
+                        <div class="settings-section url-overrides-section" style="margin-bottom: 20px;">
+                            <div class="section-label">URL Overrides</div>
+                            <div class="section-content">
+                                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">
+                                    Override where this script runs without editing its code. Uncheck "Original" sections to disable them entirely.
+                                </p>
+                                
+                                <!-- Original Includes -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="useOriginalIncludes" checked>
+                                            <span class="label-text" style="font-weight: 500;">Original @include</span>
+                                        </label>
+                                        <span class="help-icon" title="Glob patterns from the script's metadata">?</span>
+                                    </div>
+                                    <div class="url-pattern-list original-patterns" id="originalIncludesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; max-height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; color: var(--text-secondary);">
+                                        <em>None defined</em>
+                                    </div>
+                                </div>
+                                
+                                <!-- Original Matches -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="useOriginalMatches" checked>
+                                            <span class="label-text" style="font-weight: 500;">Original @match</span>
+                                        </label>
+                                        <span class="help-icon" title="Match patterns from the script's metadata">?</span>
+                                    </div>
+                                    <div class="url-pattern-list original-patterns" id="originalMatchesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; max-height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; color: var(--text-secondary);">
+                                        <em>None defined</em>
+                                    </div>
+                                </div>
+                                
+                                <!-- Original Excludes -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="useOriginalExcludes" checked>
+                                            <span class="label-text" style="font-weight: 500;">Original @exclude</span>
+                                        </label>
+                                        <span class="help-icon" title="Exclude patterns from the script's metadata">?</span>
+                                    </div>
+                                    <div class="url-pattern-list original-patterns" id="originalExcludesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; max-height: 100px; overflow-y: auto; font-family: monospace; font-size: 11px; color: var(--text-secondary);">
+                                        <em>None defined</em>
+                                    </div>
+                                </div>
+                                
+                                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+                                
+                                <!-- User Includes -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <span class="label-text" style="font-weight: 500; color: var(--accent-primary);">User @include</span>
+                                        <div class="url-override-actions" style="display: flex; gap: 4px;">
+                                            <button class="btn btn-sm" id="btnAddUserInclude" title="Add pattern">+ Add</button>
+                                        </div>
+                                    </div>
+                                    <div class="url-pattern-editable" id="userIncludesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; min-height: 60px;">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                    <input type="text" class="input-field url-pattern-input" id="userIncludeInput" placeholder="*://example.com/* (press Enter to add)" style="width: 100%; margin-top: 8px; font-family: monospace; font-size: 12px; display: none;">
+                                </div>
+                                
+                                <!-- User Matches -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <span class="label-text" style="font-weight: 500; color: var(--accent-primary);">User @match</span>
+                                        <div class="url-override-actions" style="display: flex; gap: 4px;">
+                                            <button class="btn btn-sm" id="btnAddUserMatch" title="Add pattern">+ Add</button>
+                                        </div>
+                                    </div>
+                                    <div class="url-pattern-editable" id="userMatchesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; min-height: 60px;">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                    <input type="text" class="input-field url-pattern-input" id="userMatchInput" placeholder="*://*.example.com/* (press Enter to add)" style="width: 100%; margin-top: 8px; font-family: monospace; font-size: 12px; display: none;">
+                                </div>
+                                
+                                <!-- User Excludes -->
+                                <div class="url-override-group" style="margin-bottom: 15px;">
+                                    <div class="url-override-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <span class="label-text" style="font-weight: 500; color: var(--accent-error);">User @exclude</span>
+                                        <div class="url-override-actions" style="display: flex; gap: 4px;">
+                                            <button class="btn btn-sm" id="btnAddUserExclude" title="Add pattern">+ Add</button>
+                                        </div>
+                                    </div>
+                                    <div class="url-pattern-editable" id="userExcludesList" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; min-height: 60px;">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                    <input type="text" class="input-field url-pattern-input" id="userExcludeInput" placeholder="*://m.example.com/* (press Enter to add)" style="width: 100%; margin-top: 8px; font-family: monospace; font-size: 12px; display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="btnSaveScriptSettings">Save Settings</button>
+                            <button class="btn" id="btnResetScriptSettings">Reset to Defaults</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Modal</span>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalActions"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="../lib/codemirror/codemirror.min.js"></script>
+    <script src="../lib/codemirror/mode/javascript/javascript.min.js"></script>
+    <script src="../lib/codemirror/addon/edit/closebrackets.min.js"></script>
+    <script src="../lib/codemirror/addon/edit/matchbrackets.min.js"></script>
+    <script src="../lib/codemirror/addon/fold/foldcode.min.js"></script>
+    <script src="../lib/codemirror/addon/fold/foldgutter.min.js"></script>
+    <script src="../lib/codemirror/addon/fold/brace-fold.min.js"></script>
+    <script src="../lib/codemirror/addon/fold/comment-fold.min.js"></script>
+    <script src="../lib/codemirror/addon/search/search.min.js"></script>
+    <script src="../lib/codemirror/addon/search/searchcursor.min.js"></script>
+    <script src="../lib/codemirror/addon/search/jump-to-line.min.js"></script>
+    <script src="../lib/codemirror/addon/dialog/dialog.min.js"></script>
+    <script src="../lib/codemirror/addon/lint/lint.min.js"></script>
+    <script src="../lib/codemirror/addon/lint/userscript-lint.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install Userscript - EspressoMonkey</title>
+  
+  <!-- CodeMirror for code preview -->
+  <link rel="stylesheet" href="../lib/codemirror/codemirror.min.css">
+  <link rel="stylesheet" href="../lib/codemirror/theme/monokai.min.css">
+  <link rel="stylesheet" href="../lib/codemirror/theme/dracula.min.css">
+  <script src="../lib/codemirror/codemirror.min.js"></script>
+  <script src="../lib/codemirror/mode/javascript/javascript.min.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --bg-hover: #475569;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --accent-bg: rgba(34, 197, 94, 0.1);
+      --blue: #60a5fa;
+      --blue-hover: #3b82f6;
+      --blue-bg: rgba(96, 165, 250, 0.1);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --border: #334155;
+      --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 4px;
+    }
+    
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --bg-hover: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    
+    .container {
+      max-width: 700px;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+    
+    .header-text h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .header-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .update-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .reinstall-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    /* Content */
+    .content {
+      padding: 32px;
+    }
+    
+    /* Script Info Card */
+    .script-card {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    
+    .script-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .script-icon-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .script-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--text-muted);
+    }
+    
+    .script-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+    }
+    
+    .script-title-area {
+      flex: 1;
+    }
+    
+    .script-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .script-version {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .script-version .version-change {
+      color: var(--blue);
+    }
+    
+    .script-description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    /* Script Meta */
+    .script-meta {
+      padding: 20px;
+    }
+    
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .meta-item.full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    
+    .meta-value {
+      font-size: 13px;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+    
+    .meta-value a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+    
+    .meta-value a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Sections */
+    .section {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title .count {
+      background: var(--bg-secondary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    
+    /* Tags */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .tag {
+      font-size: 12px;
+      padding: 5px 12px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xs);
+      color: var(--text-secondary);
+      font-family: 'Monaco', 'Menlo', monospace;
+    }
+    
+    .tag.warning {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+    
+    .tag.safe {
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+    
+    /* Match list */
+    .match-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .match-item {
+      font-size: 12px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xs);
+      word-break: break-all;
+    }
+    
+    .match-item::before {
+      content: '•';
+      color: var(--accent);
+      margin-right: 8px;
+    }
+    
+    /* Security Warning */
+    .security-warning {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .security-warning-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--danger);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .security-warning-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    /* Options */
+    .options {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .options-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+    }
+    
+    .option-row:not(:last-child) {
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .option-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .option-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .option-description {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    /* Toggle */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-hover);
+      transition: 0.2s;
+      border-radius: 24px;
+    }
+    
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.2s;
+      border-radius: 50%;
+    }
+    
+    .toggle input:checked + .toggle-slider {
+      background-color: var(--accent);
+    }
+    
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+    
+    /* Code Preview */
+    .code-preview {
+      margin-bottom: 24px;
+    }
+    
+    .code-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .code-preview-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .code-preview-toggle {
+      font-size: 13px;
+      color: var(--blue);
+      cursor: pointer;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .code-preview-toggle:hover {
+      text-decoration: underline;
+    }
+    
+    .code-container {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      max-height: 300px;
+      display: none;
+    }
+    
+    .code-container.expanded {
+      display: block;
+    }
+    
+    .CodeMirror {
+      height: 300px;
+      font-size: 13px;
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-update {
+      background: var(--blue);
+      color: white;
+    }
+    
+    .btn-update:hover {
+      background: var(--blue-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Export Extension Button */
+    .btn-export {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      padding: 10px 16px;
+      flex: 0 0 auto;
+    }
+    
+    .btn-export:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    
+    /* Export Modal */
+    .export-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .export-modal.visible {
+      display: flex;
+    }
+    
+    .export-modal-content {
+      background: var(--bg-secondary);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow);
+    }
+    
+    .export-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .export-modal-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .export-modal-instructions {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .export-modal-instructions h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    
+    .export-modal-instructions ol {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      padding-left: 20px;
+    }
+    
+    .export-modal-instructions code {
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .export-modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .export-modal-actions .btn {
+      flex: 0 0 auto;
+      padding: 10px 20px;
+    }
+    
+    /* Toast Animations */
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+    
+    /* States */
+    .loading {
+      text-align: center;
+      padding: 60px;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .error {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .error-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--danger);
+    }
+    
+    .error-message {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    
+    .success {
+      text-align: center;
+      padding: 60px;
+    }
+    
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .success-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .success-message {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">🐒</div>
+        <div class="header-text">
+          <h1>Install Userscript</h1>
+          <p>Review the script before installing</p>
+        </div>
+      </div>
+      <div id="install-type-badge"></div>
+    </div>
+    
+    <div class="content" id="content">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading script information...</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="install.js"></script>
+  
+  <!-- Export as Extension Modal -->
+  <div class="export-modal" id="exportModal">
+    <div class="export-modal-content">
+      <div class="export-modal-title">
+        <span>📦</span>
+        <span>Export as Chrome Extension</span>
+      </div>
+      <div class="export-modal-description">
+        This will create a standalone Chrome extension package from this userscript. 
+        The exported extension will run independently without requiring EspressoMonkey.
+      </div>
+      <div class="export-modal-instructions">
+        <h4>Installation Instructions:</h4>
+        <ol>
+          <li>Download and extract the ZIP file</li>
+          <li>Open Chrome and navigate to <code>chrome://extensions</code></li>
+          <li>Enable "Developer mode" (toggle in top-right)</li>
+          <li>Click "Load unpacked" and select the extracted folder</li>
+        </ol>
+      </div>
+      <div class="export-modal-actions">
+        <button class="btn btn-secondary" id="btn-export-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-export-download">
+          <span>📥</span> Download Extension
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

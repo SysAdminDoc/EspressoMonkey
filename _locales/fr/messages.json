@@ -1,0 +1,86 @@
+{
+  "extName": {
+    "message": "EspressoMonkey",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Un gestionnaire de scripts utilisateur puissant avec support GM API, synchronisation cloud et mises à jour automatiques",
+    "description": "Extension description"
+  },
+  "cmdOpenPopup": {
+    "message": "Ouvrir le popup",
+    "description": "Command to open the popup"
+  },
+  "cmdOpenDashboard": {
+    "message": "Ouvrir le tableau de bord",
+    "description": "Command to open the dashboard"
+  },
+  "cmdToggleScripts": {
+    "message": "Basculer tous les scripts",
+    "description": "Command to toggle all scripts"
+  },
+  "settingsGeneral": {
+    "message": "Général",
+    "description": "General settings section"
+  },
+  "settingsSecurity": {
+    "message": "Sécurité",
+    "description": "Security settings section"
+  },
+  "settingsEditor": {
+    "message": "Éditeur",
+    "description": "Editor settings section"
+  },
+  "settingsSync": {
+    "message": "Synchronisation",
+    "description": "Sync settings section"
+  },
+  "settingsUtilities": {
+    "message": "Utilitaires",
+    "description": "Utilities section"
+  },
+  "sandboxRaw": {
+    "message": "Brut (contexte page)",
+    "description": "Raw sandbox mode"
+  },
+  "sandboxJs": {
+    "message": "JavaScript (contournement CSP)",
+    "description": "JavaScript sandbox mode"
+  },
+  "sandboxDom": {
+    "message": "DOM (contexte extension)",
+    "description": "DOM sandbox mode"
+  },
+  "blacklistLow": {
+    "message": "Faible (avertir mais autoriser)",
+    "description": "Low blacklist severity"
+  },
+  "blacklistMedium": {
+    "message": "Moyen (bloquer avec dérogation)",
+    "description": "Medium blacklist severity"
+  },
+  "blacklistHigh": {
+    "message": "Élevé (toujours bloquer)",
+    "description": "High blacklist severity"
+  },
+  "btnSave": {
+    "message": "Enregistrer",
+    "description": "Save button"
+  },
+  "btnCancel": {
+    "message": "Annuler",
+    "description": "Cancel button"
+  },
+  "btnDelete": {
+    "message": "Supprimer",
+    "description": "Delete button"
+  },
+  "btnImport": {
+    "message": "Importer",
+    "description": "Import button"
+  },
+  "btnExport": {
+    "message": "Exporter",
+    "description": "Export button"
+  }
+}

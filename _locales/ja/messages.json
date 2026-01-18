@@ -1,0 +1,86 @@
+{
+  "extName": {
+    "message": "EspressoMonkey",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "GM APIサポート、クラウド同期、自動更新を備えた強力なユーザースクリプトマネージャー",
+    "description": "Extension description"
+  },
+  "cmdOpenPopup": {
+    "message": "ポップアップを開く",
+    "description": "Command to open the popup"
+  },
+  "cmdOpenDashboard": {
+    "message": "ダッシュボードを開く",
+    "description": "Command to open the dashboard"
+  },
+  "cmdToggleScripts": {
+    "message": "すべてのスクリプトを切り替え",
+    "description": "Command to toggle all scripts"
+  },
+  "settingsGeneral": {
+    "message": "一般",
+    "description": "General settings section"
+  },
+  "settingsSecurity": {
+    "message": "セキュリティ",
+    "description": "Security settings section"
+  },
+  "settingsEditor": {
+    "message": "エディター",
+    "description": "Editor settings section"
+  },
+  "settingsSync": {
+    "message": "同期",
+    "description": "Sync settings section"
+  },
+  "settingsUtilities": {
+    "message": "ユーティリティ",
+    "description": "Utilities section"
+  },
+  "sandboxRaw": {
+    "message": "Raw（ページコンテキスト）",
+    "description": "Raw sandbox mode"
+  },
+  "sandboxJs": {
+    "message": "JavaScript（CSPバイパス）",
+    "description": "JavaScript sandbox mode"
+  },
+  "sandboxDom": {
+    "message": "DOM（拡張機能コンテキスト）",
+    "description": "DOM sandbox mode"
+  },
+  "blacklistLow": {
+    "message": "低（警告するが許可）",
+    "description": "Low blacklist severity"
+  },
+  "blacklistMedium": {
+    "message": "中（オーバーライドでブロック）",
+    "description": "Medium blacklist severity"
+  },
+  "blacklistHigh": {
+    "message": "高（常にブロック）",
+    "description": "High blacklist severity"
+  },
+  "btnSave": {
+    "message": "保存",
+    "description": "Save button"
+  },
+  "btnCancel": {
+    "message": "キャンセル",
+    "description": "Cancel button"
+  },
+  "btnDelete": {
+    "message": "削除",
+    "description": "Delete button"
+  },
+  "btnImport": {
+    "message": "インポート",
+    "description": "Import button"
+  },
+  "btnExport": {
+    "message": "エクスポート",
+    "description": "Export button"
+  }
+}

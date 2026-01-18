@@ -1,0 +1,22 @@
+{
+  "extName": {
+    "message": "EspressoMonkey",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "A powerful userscript manager with GM API support, cloud sync, and auto-updates",
+    "description": "Extension description"
+  },
+  "cmdOpenPopup": {
+    "message": "Open popup",
+    "description": "Command to open the popup"
+  },
+  "cmdOpenDashboard": {
+    "message": "Open dashboard",
+    "description": "Command to open the dashboard"
+  },
+  "cmdToggleScripts": {
+    "message": "Toggle all scripts",
+    "description": "Command to toggle all scripts"
+  }
+}

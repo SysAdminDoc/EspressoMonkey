@@ -1,0 +1,143 @@
+/* CodeMirror Lint Addon Styles */
+
+/* Gutter */
+.CodeMirror-lint-markers {
+  width: 16px;
+}
+
+.CodeMirror-lint-tooltip {
+  background-color: #1e1e2e;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  max-width: 600px;
+  opacity: 0;
+  overflow: hidden;
+  padding: 8px 12px;
+  position: fixed;
+  transition: opacity 0.2s;
+  white-space: pre-wrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.CodeMirror-lint-tooltip-visible {
+  opacity: 1;
+}
+
+/* Marker icons in gutter */
+.CodeMirror-lint-marker {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  position: relative;
+}
+
+.CodeMirror-lint-marker-error {
+  color: #f38ba8;
+}
+
+.CodeMirror-lint-marker-error::before {
+  content: "●";
+  font-size: 14px;
+}
+
+.CodeMirror-lint-marker-warning {
+  color: #f9e2af;
+}
+
+.CodeMirror-lint-marker-warning::before {
+  content: "●";
+  font-size: 14px;
+}
+
+.CodeMirror-lint-marker-info {
+  color: #89b4fa;
+}
+
+.CodeMirror-lint-marker-info::before {
+  content: "●";
+  font-size: 14px;
+}
+
+.CodeMirror-lint-marker-multiple {
+  color: #cba6f7;
+}
+
+.CodeMirror-lint-marker-multiple::before {
+  content: "●";
+  font-size: 14px;
+}
+
+/* Line highlights */
+.CodeMirror-lint-line-error {
+  background-color: rgba(243, 139, 168, 0.1);
+}
+
+.CodeMirror-lint-line-warning {
+  background-color: rgba(249, 226, 175, 0.1);
+}
+
+/* Tooltip message styling */
+.CodeMirror-lint-message {
+  padding: 4px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.CodeMirror-lint-message:not(:last-child) {
+  border-bottom: 1px solid #45475a;
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+}
+
+.CodeMirror-lint-message-error {
+  color: #f38ba8;
+}
+
+.CodeMirror-lint-message-error::before {
+  content: "✕";
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.CodeMirror-lint-message-warning {
+  color: #f9e2af;
+}
+
+.CodeMirror-lint-message-warning::before {
+  content: "⚠";
+  margin-right: 4px;
+}
+
+.CodeMirror-lint-message-info {
+  color: #89b4fa;
+}
+
+.CodeMirror-lint-message-info::before {
+  content: "ℹ";
+  margin-right: 4px;
+}
+
+/* Underline styling for inline errors */
+.CodeMirror .cm-lint-error {
+  text-decoration: underline wavy #f38ba8;
+  text-underline-offset: 3px;
+}
+
+.CodeMirror .cm-lint-warning {
+  text-decoration: underline wavy #f9e2af;
+  text-underline-offset: 3px;
+}
+
+.CodeMirror .cm-lint-info {
+  text-decoration: underline wavy #89b4fa;
+  text-underline-offset: 3px;
+}

@@ -1,0 +1,86 @@
+{
+  "extName": {
+    "message": "EspressoMonkey",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "强大的用户脚本管理器，支持GM API、云同步和自动更新",
+    "description": "Extension description"
+  },
+  "cmdOpenPopup": {
+    "message": "打开弹出窗口",
+    "description": "Command to open the popup"
+  },
+  "cmdOpenDashboard": {
+    "message": "打开仪表板",
+    "description": "Command to open the dashboard"
+  },
+  "cmdToggleScripts": {
+    "message": "切换所有脚本",
+    "description": "Command to toggle all scripts"
+  },
+  "settingsGeneral": {
+    "message": "常规",
+    "description": "General settings section"
+  },
+  "settingsSecurity": {
+    "message": "安全",
+    "description": "Security settings section"
+  },
+  "settingsEditor": {
+    "message": "编辑器",
+    "description": "Editor settings section"
+  },
+  "settingsSync": {
+    "message": "同步",
+    "description": "Sync settings section"
+  },
+  "settingsUtilities": {
+    "message": "工具",
+    "description": "Utilities section"
+  },
+  "sandboxRaw": {
+    "message": "原始（页面上下文）",
+    "description": "Raw sandbox mode"
+  },
+  "sandboxJs": {
+    "message": "JavaScript（绕过CSP）",
+    "description": "JavaScript sandbox mode"
+  },
+  "sandboxDom": {
+    "message": "DOM（扩展上下文）",
+    "description": "DOM sandbox mode"
+  },
+  "blacklistLow": {
+    "message": "低（警告但允许）",
+    "description": "Low blacklist severity"
+  },
+  "blacklistMedium": {
+    "message": "中（阻止但可覆盖）",
+    "description": "Medium blacklist severity"
+  },
+  "blacklistHigh": {
+    "message": "高（始终阻止）",
+    "description": "High blacklist severity"
+  },
+  "btnSave": {
+    "message": "保存",
+    "description": "Save button"
+  },
+  "btnCancel": {
+    "message": "取消",
+    "description": "Cancel button"
+  },
+  "btnDelete": {
+    "message": "删除",
+    "description": "Delete button"
+  },
+  "btnImport": {
+    "message": "导入",
+    "description": "Import button"
+  },
+  "btnExport": {
+    "message": "导出",
+    "description": "Export button"
+  }
+}
