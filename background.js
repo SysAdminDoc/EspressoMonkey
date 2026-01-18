@@ -6435,34 +6435,30 @@ function buildWrappedScript(script, requireScripts = [], preloadedStorage = {}) 
   const grants = meta.grant || ['none'];
   
   // Build @require scripts section
-  // Code is executed BEFORE the main IIFE so var declarations become window properties
-  // This is critical for libraries like GM_config that use: var GM_config = ...
+  // Code runs INSIDE the IIFE after GM APIs are available, then libraries are exposed to window
   let requireCode = '';
   for (const req of requireScripts) {
-    // Escape the URL for the comment
     const safeUrl = req.url.replace(/\*\//g, '* /');
-    // Directly inline the @require code at global scope
-    // Wrap in try/catch to isolate errors but keep at top level
     requireCode += `
 // @require ${safeUrl}
-try {
 ${req.code}
-} catch(e) { 
-  console.error('[EspressoMonkey] Error in @require ' + ${JSON.stringify(safeUrl)} + ':', e); 
-}
 `;
   }
+  
+  // After @require code, expose common libraries to window for cross-script access
+  const libraryExports = requireCode ? `
+  // Expose common @require libraries to window
+  if (typeof GM_config !== 'undefined' && typeof window.GM_config === 'undefined') window.GM_config = GM_config;
+  if (typeof GM_configStruct !== 'undefined' && typeof window.GM_configStruct === 'undefined') window.GM_configStruct = GM_configStruct;
+  if (typeof $ !== 'undefined' && typeof window.$ === 'undefined') window.$ = $;
+  if (typeof jQuery !== 'undefined' && typeof window.jQuery === 'undefined') window.jQuery = jQuery;
+  if (typeof Fuse !== 'undefined' && typeof window.Fuse === 'undefined') window.Fuse = Fuse;
+  if (typeof JSZip !== 'undefined' && typeof window.JSZip === 'undefined') window.JSZip = JSZip;
+` : '';
   
   // Build the GM API initialization with pre-loaded storage
   // Get the extension ID at build time so it's available in the wrapper
   const extId = chrome.runtime.id;
-  
-  // @require scripts run FIRST (outside IIFE) so var declarations attach to window
-  const requirePrefix = requireCode ? `
-// ============ @require Scripts (global scope) ============
-${requireCode}
-// ============ End @require Scripts ============
-` : '';
   
   const apiInit = `
 (function() {
@@ -7287,6 +7283,12 @@ ${requireCode}
   // GM APIs exposed log disabled for performance
   // console.log('[EspressoMonkey] GM APIs exposed to window for:', meta.name);
 
+  // ============ @require Scripts ============
+  // These run after GM APIs are available on window
+${requireCode}
+${libraryExports}
+  // ============ End @require Scripts ============
+
   // Wait for storage to be refreshed, then execute the userscript
   // This ensures scripts see fresh values when using GM_getValue
   (async function __scriptMonkeyRunner() {
@@ -7302,7 +7304,7 @@ ${requireCode}
 })();
 `;
 
-  return requirePrefix + apiInit + script.code + apiClose;
+  return apiInit + script.code + apiClose;
 }
 
 // Helper: Check if a pattern is a valid match pattern
