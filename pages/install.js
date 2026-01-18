@@ -30,6 +30,17 @@ let autoUpdate = true;
 let enableOnInstall = true;
 
 async function init() {
+  // Event delegation for icon error handling (CSP-compliant)
+  document.addEventListener('error', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.hasAttribute('data-icon-fallback')) {
+      const fallback = e.target.getAttribute('data-icon-fallback');
+      e.target.style.display = 'none';
+      if (e.target.parentElement && fallback) {
+        e.target.parentElement.innerHTML = fallback;
+      }
+    }
+  }, true);
+  
   // Load theme
   const settings = await chrome.runtime.sendMessage({ action: 'getSettings' });
   if (settings?.theme === 'light') {
@@ -184,7 +195,7 @@ function renderInstallUI(sourceUrl) {
       <div class="script-header">
         <div class="script-icon-row">
           <div class="script-icon">
-            ${iconUrl ? `<img src="${escapeHtml(iconUrl)}" alt="" onerror="this.style.display='none'; this.parentElement.innerHTML='📜'">` : '📜'}
+            ${iconUrl ? `<img src="${escapeHtml(iconUrl)}" alt="" data-icon-fallback="📜">` : '📜'}
           </div>
           <div class="script-title-area">
             <div class="script-name">${escapeHtml(scriptMeta.name)}</div>
@@ -457,9 +468,10 @@ function showError(title, message) {
       <div class="error-icon">❌</div>
       <div class="error-title">${escapeHtml(title)}</div>
       <div class="error-message">${escapeHtml(message)}</div>
-      <button class="btn btn-secondary" onclick="window.close()">Close</button>
+      <button class="btn btn-secondary" id="btnCloseError">Close</button>
     </div>
   `;
+  document.getElementById('btnCloseError')?.addEventListener('click', () => window.close());
 }
 
 function showSuccess(name, action) {

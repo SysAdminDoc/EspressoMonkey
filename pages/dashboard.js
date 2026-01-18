@@ -260,6 +260,18 @@
     // Initialize
     async function init() {
         cacheElements();
+        
+        // Event delegation for favicon error handling (CSP-compliant)
+        // Handles images with data-favicon-fallback attribute
+        document.addEventListener('error', function(e) {
+            if (e.target.tagName === 'IMG' && e.target.hasAttribute('data-favicon-fallback')) {
+                e.target.style.display = 'none';
+                if (e.target.parentElement) {
+                    e.target.parentElement.classList.add('favicon-fallback');
+                }
+            }
+        }, true); // Use capture phase to catch errors before they propagate
+        
         await loadSettings();
         await loadScripts();
         initEditor();
@@ -337,7 +349,7 @@
         
         instructions += `
             <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="chrome.tabs.create({url: 'chrome://extensions/?id=${chrome.runtime.id}'})">
+                <button class="btn btn-primary" id="btnOpenExtSettings">
                     Open Extension Settings
                 </button>
             </div>
@@ -346,6 +358,11 @@
         showModal('Setup Instructions', instructions, [
             { text: 'Close', action: 'close' }
         ]);
+        
+        // Add event listener after modal is shown (CSP-safe)
+        document.getElementById('btnOpenExtSettings')?.addEventListener('click', () => {
+            chrome.tabs.create({url: 'chrome://extensions/?id=' + chrome.runtime.id});
+        });
     }
 
     // Settings
@@ -1108,15 +1125,15 @@
     }
     
     // Generate favicon HTML for script name column
+    // Uses data-favicon-fallback attribute for CSP-compliant error handling
     function generateFaviconHtml(iconUrl, firstDomain) {
-        // Use a class-based fallback to avoid quote escaping issues in onerror
         if (iconUrl) {
             // Use the script's @icon directly
-            return `<span class="script-favicon"><img src="${escapeHtml(iconUrl)}" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('favicon-fallback')"></span>`;
+            return `<span class="script-favicon"><img src="${escapeHtml(iconUrl)}" data-favicon-fallback="true"></span>`;
         } else if (firstDomain) {
             // Derive favicon from first domain
             const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(firstDomain)}&sz=32`;
-            return `<span class="script-favicon"><img src="${faviconUrl}" onerror="this.onerror=null;this.style.display='none';this.parentElement.classList.add('favicon-fallback')"></span>`;
+            return `<span class="script-favicon"><img src="${faviconUrl}" data-favicon-fallback="true"></span>`;
         } else {
             return `<span class="script-favicon favicon-fallback"></span>`;
         }
@@ -1172,7 +1189,7 @@
         
         for (const domain of displayDomains) {
             const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
-            html += `<span class="site-icon" title="${escapeHtml(domain)}"><img src="${faviconUrl}" onerror="this.style.display='none'"></span>`;
+            html += `<span class="site-icon" title="${escapeHtml(domain)}"><img src="${faviconUrl}" data-favicon-fallback="true"></span>`;
         }
         
         if (remainingCount > 0) {

@@ -6435,7 +6435,8 @@ function buildWrappedScript(script, requireScripts = [], preloadedStorage = {}) 
   const grants = meta.grant || ['none'];
   
   // Build @require scripts section
-  // Code runs INSIDE the IIFE after GM APIs are available, then libraries are exposed to window
+  // Code runs INSIDE the main IIFE after GM APIs are available
+  // No try/catch wrapper because let/const are block-scoped and wouldn't escape
   let requireCode = '';
   for (const req of requireScripts) {
     const safeUrl = req.url.replace(/\*\//g, '* /');
