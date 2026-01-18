@@ -1,7 +1,7 @@
 # EspressoMonkey ☕🐵
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/SysAdminDoc/EspressoMonkey/refs/heads/main/images/logo128.ico" alt="EspressoMonkey Logo" width="128" height="128">
+<img width="710" height="658" alt="logo" src="https://github.com/user-attachments/assets/390124de-8f90-4557-acb1-eb91d9986349" />
 </p>
 
 <p align="center">
