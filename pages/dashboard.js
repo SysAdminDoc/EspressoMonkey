@@ -188,16 +188,11 @@
         
         // Settings - Security
         elements.settingsContentScriptAPI = document.getElementById('settingsContentScriptAPI');
-        elements.settingsDefaultSandboxMode = document.getElementById('settingsDefaultSandboxMode');
-        elements.settingsAllowSandboxRaw = document.getElementById('settingsAllowSandboxRaw');
-        elements.settingsAllowSandboxJs = document.getElementById('settingsAllowSandboxJs');
-        elements.settingsAllowSandboxDom = document.getElementById('settingsAllowSandboxDom');
+        elements.settingsSandboxMode = document.getElementById('settingsSandboxMode');
         elements.settingsModifyCSP = document.getElementById('settingsModifyCSP');
         elements.settingsAllowHttpHeaders = document.getElementById('settingsAllowHttpHeaders');
-        elements.settingsHttpHeaderWarnings = document.getElementById('settingsHttpHeaderWarnings');
         elements.settingsDefaultTabTypes = document.getElementById('settingsDefaultTabTypes');
         elements.settingsAllowLocalFiles = document.getElementById('settingsAllowLocalFiles');
-        elements.settingsAllowFileUrls = document.getElementById('settingsAllowFileUrls');
         elements.settingsAllowCookies = document.getElementById('settingsAllowCookies');
         elements.settingsAllowCommunication = document.getElementById('settingsAllowCommunication');
         elements.settingsSRI = document.getElementById('settingsSRI');
@@ -217,7 +212,7 @@
         
         // Settings - BlackCheck
         elements.settingsBlacklistSource = document.getElementById('settingsBlacklistSource');
-        elements.settingsBlacklistSeverity = document.getElementById('settingsBlacklistSeverity');
+        elements.settingsBlockSeverity = document.getElementById('settingsBlockSeverity');
         elements.settingsManualBlacklist = document.getElementById('settingsManualBlacklist');
         elements.btnSaveBlackCheck = document.getElementById('btnSaveBlackCheck');
         
@@ -245,12 +240,6 @@
         elements.textareaData = document.getElementById('textareaData');
         elements.btnTextareaExport = document.getElementById('btnTextareaExport');
         elements.btnTextareaImport = document.getElementById('btnTextareaImport');
-        
-        // External Editor
-        elements.externalEditorScript = document.getElementById('externalEditorScript');
-        elements.btnCopyToClipboard = document.getElementById('btnCopyToClipboard');
-        elements.btnImportFromClipboard = document.getElementById('btnImportFromClipboard');
-        elements.btnOpenInVSCode = document.getElementById('btnOpenInVSCode');
 
         // Stats
         elements.statTotalScripts = document.getElementById('statTotalScripts');
@@ -348,7 +337,7 @@
         
         instructions += `
             <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" id="btnOpenExtensionSettings">
+                <button class="btn btn-primary" onclick="chrome.tabs.create({url: 'chrome://extensions/?id=${chrome.runtime.id}'})">
                     Open Extension Settings
                 </button>
             </div>
@@ -357,11 +346,6 @@
         showModal('Setup Instructions', instructions, [
             { text: 'Close', action: 'close' }
         ]);
-        
-        // Attach event listener after modal is shown (CSP-compliant)
-        document.getElementById('btnOpenExtensionSettings')?.addEventListener('click', () => {
-            chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` });
-        });
     }
 
     // Settings
@@ -461,20 +445,11 @@
         
         // Security settings
         if (elements.settingsContentScriptAPI) elements.settingsContentScriptAPI.value = s.contentScriptAPI || 'userscripts';
-        if (elements.settingsDefaultSandboxMode) elements.settingsDefaultSandboxMode.value = s.defaultSandboxMode || 'raw';
-        
-        // Allowed sandbox modes checkboxes
-        const allowedModes = s.allowedSandboxModes || ['raw', 'js', 'dom'];
-        if (elements.settingsAllowSandboxRaw) elements.settingsAllowSandboxRaw.checked = allowedModes.includes('raw');
-        if (elements.settingsAllowSandboxJs) elements.settingsAllowSandboxJs.checked = allowedModes.includes('js');
-        if (elements.settingsAllowSandboxDom) elements.settingsAllowSandboxDom.checked = allowedModes.includes('dom');
-        
+        if (elements.settingsSandboxMode) elements.settingsSandboxMode.value = s.sandboxMode || 'default';
         if (elements.settingsModifyCSP) elements.settingsModifyCSP.value = s.modifyCSP || 'auto';
-        if (elements.settingsAllowHttpHeaders) elements.settingsAllowHttpHeaders.value = s.allowHttpHeaders ? 'yes' : 'no';
-        if (elements.settingsHttpHeaderWarnings) elements.settingsHttpHeaderWarnings.checked = s.httpHeaderWarnings !== false;
+        if (elements.settingsAllowHttpHeaders) elements.settingsAllowHttpHeaders.value = s.allowHttpHeaders || 'yes';
         if (elements.settingsDefaultTabTypes) elements.settingsDefaultTabTypes.value = s.defaultTabTypes || 'all';
         if (elements.settingsAllowLocalFiles) elements.settingsAllowLocalFiles.value = s.allowLocalFiles || 'all';
-        if (elements.settingsAllowFileUrls) elements.settingsAllowFileUrls.checked = s.allowFileUrls || false;
         if (elements.settingsAllowCookies) elements.settingsAllowCookies.value = s.allowCookies || 'all';
         if (elements.settingsAllowCommunication) elements.settingsAllowCommunication.value = s.allowCommunication || 'version';
         if (elements.settingsSRI) elements.settingsSRI.value = s.sri || 'validate';
@@ -488,9 +463,9 @@
         // Runtime Host Permissions
         if (elements.settingsDeniedHosts) elements.settingsDeniedHosts.value = (s.deniedHosts || []).join('\n');
         
-        // BlackCheck - updated with severity levels
-        if (elements.settingsBlacklistSource) elements.settingsBlacklistSource.value = s.blacklistSource || 'both';
-        if (elements.settingsBlacklistSeverity) elements.settingsBlacklistSeverity.value = s.blacklistSeverity || 'medium';
+        // BlackCheck
+        if (elements.settingsBlacklistSource) elements.settingsBlacklistSource.value = s.blacklistSource || 'remote_manual';
+        if (elements.settingsBlockSeverity) elements.settingsBlockSeverity.value = s.blockSeverity || '4';
         if (elements.settingsManualBlacklist) elements.settingsManualBlacklist.value = s.manualBlacklist || '';
         
         // Downloads
@@ -531,8 +506,6 @@
             elements.syncWebdavSettings.style.display = 'block';
         } else if (['googledrive', 'dropbox', 'onedrive'].includes(syncType) && elements.syncOAuthSettings) {
             elements.syncOAuthSettings.style.display = 'block';
-            // Load status for the selected provider
-            loadSyncProviderStatus();
         }
     }
     
@@ -543,29 +516,23 @@
     
     // Update sync provider status UI
     function updateSyncProviderUI(provider, status) {
-        // Use common OAuth elements for all providers
-        const statusEl = elements.oauthStatus;
-        const userEl = elements.oauthUser;
-        const userRowEl = elements.oauthUserRow;
-        const connectBtn = elements.btnConnectOAuth;
-        const disconnectBtn = elements.btnDisconnectOAuth;
+        const statusEl = elements[`${provider}Status`];
+        const userEl = elements[`${provider}User`];
+        const userRowEl = elements[`${provider}UserRow`];
+        const connectBtn = elements[`btnConnect${capitalize(provider)}`];
+        const disconnectBtn = elements[`btnDisconnect${capitalize(provider)}`];
+        const syncBtn = elements[`btnSync${capitalize(provider)}`];
         
-        // Only update if this is the currently selected provider
-        const currentProvider = elements.settingsSyncType?.value;
-        if (currentProvider !== provider) return;
-        
-        if (status?.connected || status?.success) {
+        if (status?.connected) {
             if (statusEl) {
                 statusEl.textContent = 'Connected';
                 statusEl.className = 'sync-status connected';
             }
-            const userName = status.user?.email || status.user?.name || status.user;
-            if (userEl && userName) {
-                userEl.textContent = userName;
-            }
-            if (userRowEl) userRowEl.style.display = userName ? 'flex' : 'none';
+            if (userEl && status.user) userEl.textContent = status.user;
+            if (userRowEl) userRowEl.style.display = status.user ? 'flex' : 'none';
             if (connectBtn) connectBtn.style.display = 'none';
             if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
+            if (syncBtn) syncBtn.style.display = 'inline-block';
         } else {
             if (statusEl) {
                 statusEl.textContent = 'Not connected';
@@ -574,6 +541,7 @@
             if (userRowEl) userRowEl.style.display = 'none';
             if (connectBtn) connectBtn.style.display = 'inline-block';
             if (disconnectBtn) disconnectBtn.style.display = 'none';
+            if (syncBtn) syncBtn.style.display = 'none';
         }
     }
     
@@ -583,15 +551,13 @@
     
     // Load sync provider status for OAuth providers
     async function loadSyncProviderStatus() {
-        const currentProvider = elements.settingsSyncType?.value;
-        
-        // Only check status for OAuth providers
-        if (currentProvider && ['googledrive', 'dropbox', 'onedrive'].includes(currentProvider)) {
+        const providers = ['googledrive', 'dropbox', 'onedrive'];
+        for (const provider of providers) {
             try {
-                const response = await chrome.runtime.sendMessage({ action: 'getSyncProviderStatus', provider: currentProvider });
-                updateSyncProviderUI(currentProvider, response);
+                const response = await chrome.runtime.sendMessage({ action: 'getSyncProviderStatus', provider });
+                updateSyncProviderUI(provider, response);
             } catch (e) {
-                console.error(`Failed to get ${currentProvider} status:`, e);
+                console.error(`Failed to get ${provider} status:`, e);
             }
         }
         
@@ -872,31 +838,6 @@
             }
         } catch (e) {
             console.error('Failed to load scripts:', e);
-        }
-    }
-    
-    // Populate External Editor script dropdown
-    function populateExternalEditorDropdown() {
-        const select = elements.externalEditorScript;
-        if (!select) return;
-        
-        // Clear existing options except the placeholder
-        select.innerHTML = '<option value="">Select a script...</option>';
-        
-        // Add scripts
-        const sortedScripts = [...state.scripts].sort((a, b) => {
-            const nameA = a.metadata?.name || '';
-            const nameB = b.metadata?.name || '';
-            return nameA.localeCompare(nameB);
-        });
-        
-        for (const script of sortedScripts) {
-            const option = document.createElement('option');
-            option.value = script.id;
-            const name = script.metadata?.name || 'Unnamed Script';
-            const version = script.metadata?.version || '';
-            option.textContent = version ? `${name} v${version}` : name;
-            select.appendChild(option);
         }
     }
     
@@ -1495,59 +1436,21 @@
     async function importScript() {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.user.js,.js,.zip,.json';
+        input.accept = '.user.js,.js';
         input.multiple = true;
-        input.addEventListener('change', async e => {
+        input.onchange = async e => {
             for (const file of e.target.files) {
                 try {
-                    if (file.name.endsWith('.zip')) {
-                        // Handle ZIP import
-                        showToast('Importing ZIP...', 'info');
-                        const buf = await file.arrayBuffer();
-                        const bytes = new Uint8Array(buf);
-                        const CHUNK_SIZE = 0x8000;
-                        let binary = '';
-                        for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-                            const chunk = bytes.subarray(i, Math.min(i + CHUNK_SIZE, bytes.length));
-                            binary += String.fromCharCode.apply(null, chunk);
-                        }
-                        const b64 = btoa(binary);
-                        const r = await chrome.runtime.sendMessage({ action: 'importFromZip', zipData: b64, options: { overwrite: true } });
-                        if (r?.error) {
-                            showToast(r.error, 'error');
-                        } else {
-                            showImportSuccessModal({
-                                imported: r?.imported || 0,
-                                skipped: r?.skipped || 0,
-                                errors: r?.errors || [],
-                                filename: file.name
-                            });
-                        }
-                    } else if (file.name.endsWith('.json')) {
-                        // Handle JSON import
-                        showToast('Importing JSON...', 'info');
-                        const data = JSON.parse(await file.text());
-                        await chrome.runtime.sendMessage({ action: 'importAll', data: { data, options: { overwrite: true } } });
-                        showImportSuccessModal({
-                            imported: data.scripts?.length || 0,
-                            skipped: 0,
-                            errors: [],
-                            filename: file.name
-                        });
-                    } else {
-                        // Handle single JS file
-                        const code = await file.text();
-                        const res = await chrome.runtime.sendMessage({ action: 'createScript', code });
-                        if (res?.success) showToast(`Imported: ${file.name}`, 'success');
-                        else showToast(`Failed: ${res?.error || file.name}`, 'error');
-                    }
+                    const code = await file.text();
+                    const res = await chrome.runtime.sendMessage({ action: 'createScript', code });
+                    if (res?.success) showToast(`Imported: ${file.name}`, 'success');
                 } catch (err) {
-                    showToast(`Failed: ${file.name} - ${err.message}`, 'error');
+                    showToast(`Failed: ${file.name}`, 'error');
                 }
             }
             await loadScripts();
             updateStats();
-        });
+        };
         input.click();
     }
 
@@ -1569,7 +1472,6 @@
 
     async function exportToZip() {
         try {
-            showToast('Creating backup...', 'info');
             const response = await chrome.runtime.sendMessage({ action: 'exportZip' });
             if (response?.zipData) {
                 const bytes = atob(response.zipData).split('').map(c => c.charCodeAt(0));
@@ -1578,23 +1480,10 @@
                 a.href = URL.createObjectURL(blob);
                 a.download = response.filename || `espressomonkey-${new Date().toISOString().split('T')[0]}.zip`;
                 a.click();
-                
-                // Calculate size for display
-                const sizeKB = (blob.size / 1024).toFixed(1);
-                const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
-                const sizeStr = blob.size > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
-                
-                showExportSuccessModal({
-                    filename: a.download,
-                    size: sizeStr,
-                    scriptCount: state.scripts.length
-                });
-            } else {
-                showToast('Export failed - no data', 'error');
+                showToast('Exported ZIP', 'success');
             }
         } catch (e) {
-            console.error('Export error:', e);
-            showToast('Export failed: ' + e.message, 'error');
+            showToast('Failed', 'error');
         }
     }
 
@@ -1689,78 +1578,6 @@
                 { label: 'Confirm', class: 'btn-primary', callback: () => { hideModal(); resolve(true); } }
             ]);
         });
-    }
-    
-    function showExportSuccessModal(data) {
-        const html = `
-            <div style="text-align: center; padding: 20px 0;">
-                <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--accent-primary);">Export Successful!</div>
-                <div style="color: var(--text-secondary); margin-bottom: 20px;">Your backup has been downloaded</div>
-                <div style="background: var(--bg-input); border-radius: 8px; padding: 16px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="color: var(--text-muted);">Scripts exported:</span>
-                        <span style="font-weight: 600;">${data.scriptCount}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="color: var(--text-muted);">File size:</span>
-                        <span style="font-weight: 600;">${data.size}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">Filename:</span>
-                        <span style="font-weight: 500; font-size: 12px; word-break: break-all;">${escapeHtml(data.filename)}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        showModal('Export Complete', html, [
-            { label: 'Close', class: 'btn-primary', callback: hideModal }
-        ]);
-    }
-    
-    function showImportSuccessModal(data) {
-        const html = `
-            <div style="text-align: center; padding: 20px 0;">
-                <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--accent-primary);">Import Successful!</div>
-                <div style="color: var(--text-secondary); margin-bottom: 20px;">Your scripts have been restored</div>
-                <div style="background: var(--bg-input); border-radius: 8px; padding: 16px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="color: var(--text-muted);">Scripts imported:</span>
-                        <span style="font-weight: 600; color: var(--accent-primary);">${data.imported}</span>
-                    </div>
-                    ${data.skipped > 0 ? `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="color: var(--text-muted);">Scripts skipped:</span>
-                        <span style="font-weight: 600; color: var(--accent-warning);">${data.skipped}</span>
-                    </div>
-                    ` : ''}
-                    ${data.errors && data.errors.length > 0 ? `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="color: var(--text-muted);">Errors:</span>
-                        <span style="font-weight: 600; color: var(--accent-error);">${data.errors.length}</span>
-                    </div>
-                    ` : ''}
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">From file:</span>
-                        <span style="font-weight: 500; font-size: 12px; word-break: break-all;">${escapeHtml(data.filename || 'Unknown')}</span>
-                    </div>
-                </div>
-                ${data.errors && data.errors.length > 0 ? `
-                <div style="margin-top: 12px; text-align: left;">
-                    <details style="background: var(--bg-input); border-radius: 4px; padding: 8px;">
-                        <summary style="cursor: pointer; color: var(--accent-error); font-size: 12px;">View errors</summary>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; max-height: 100px; overflow-y: auto;">
-                            ${data.errors.map(e => `<div>• ${escapeHtml(e.name)}: ${escapeHtml(e.error)}</div>`).join('')}
-                        </div>
-                    </details>
-                </div>
-                ` : ''}
-            </div>
-        `;
-        showModal('Import Complete', html, [
-            { label: 'Close', class: 'btn-primary', callback: hideModal }
-        ]);
     }
 
     // Event listeners
@@ -1945,7 +1762,7 @@
         const settingMap = {
             // General
             settingsConfigMode: ['configMode', 'value'],
-            // settingsLanguage handled separately with restart notice
+            settingsLanguage: ['language', 'value'],
             settingsAutoReload: ['autoReload', 'checked'],
             settingsAnonymousStats: ['anonymousStats', 'checked'],
             settingsDebugMode: ['debugMode', 'checked'],
@@ -2002,11 +1819,11 @@
             
             // Security
             settingsContentScriptAPI: ['contentScriptAPI', 'value'],
-            settingsDefaultSandboxMode: ['defaultSandboxMode', 'value'],
+            settingsSandboxMode: ['sandboxMode', 'value'],
             settingsModifyCSP: ['modifyCSP', 'value'],
+            settingsAllowHttpHeaders: ['allowHttpHeaders', 'value'],
             settingsDefaultTabTypes: ['defaultTabTypes', 'value'],
             settingsAllowLocalFiles: ['allowLocalFiles', 'value'],
-            settingsAllowFileUrls: ['allowFileUrls', 'checked'],
             settingsAllowCookies: ['allowCookies', 'value'],
             settingsAllowCommunication: ['allowCommunication', 'value'],
             settingsSRI: ['sri', 'value'],
@@ -2014,11 +1831,10 @@
             settingsCheckConnect: ['checkConnect', 'value'],
             settingsIncognitoStorage: ['incognitoStorage', 'value'],
             settingsPageFilterMode: ['pageFilterMode', 'value'],
-            settingsHttpHeaderWarnings: ['httpHeaderWarnings', 'checked'],
             
             // BlackCheck
             settingsBlacklistSource: ['blacklistSource', 'value'],
-            settingsBlacklistSeverity: ['blacklistSeverity', 'value'],
+            settingsBlockSeverity: ['blockSeverity', 'value'],
             
             // Downloads
             settingsDownloadMode: ['downloadMode', 'value'],
@@ -2031,46 +1847,6 @@
         Object.entries(settingMap).forEach(([id, [key, prop, fn]]) => {
             elements[id]?.addEventListener('change', e => saveSetting(key, fn ? fn(e.target[prop]) : e.target[prop]));
         });
-        
-        // HTTP Headers setting (convert yes/no to boolean)
-        elements.settingsAllowHttpHeaders?.addEventListener('change', e => {
-            saveSetting('allowHttpHeaders', e.target.value === 'yes');
-        });
-        
-        // Language setting with restart notice
-        const languageRestartNotice = document.getElementById('languageRestartNotice');
-        const btnReloadForLanguage = document.getElementById('btnReloadForLanguage');
-        let originalLanguage = state.settings.language || 'auto';
-        
-        elements.settingsLanguage?.addEventListener('change', async e => {
-            const newLang = e.target.value;
-            await saveSetting('language', newLang);
-            
-            // Show restart notice if language changed from original
-            if (languageRestartNotice) {
-                if (newLang !== originalLanguage) {
-                    languageRestartNotice.style.display = 'block';
-                } else {
-                    languageRestartNotice.style.display = 'none';
-                }
-            }
-        });
-        
-        btnReloadForLanguage?.addEventListener('click', () => {
-            window.location.reload();
-        });
-        
-        // Allowed sandbox modes checkboxes
-        const updateAllowedSandboxModes = () => {
-            const modes = [];
-            if (elements.settingsAllowSandboxRaw?.checked) modes.push('raw');
-            if (elements.settingsAllowSandboxJs?.checked) modes.push('js');
-            if (elements.settingsAllowSandboxDom?.checked) modes.push('dom');
-            saveSetting('allowedSandboxModes', modes);
-        };
-        elements.settingsAllowSandboxRaw?.addEventListener('change', updateAllowedSandboxModes);
-        elements.settingsAllowSandboxJs?.addEventListener('change', updateAllowedSandboxModes);
-        elements.settingsAllowSandboxDom?.addEventListener('change', updateAllowedSandboxModes);
         
         // Layout/Theme setting (with theme application)
         elements.settingsLayout?.addEventListener('change', e => {
@@ -2146,33 +1922,16 @@
 
         // Sync buttons
         elements.btnSyncNow?.addEventListener('click', async () => {
-            const syncType = elements.settingsSyncType?.value;
-            if (!syncType || syncType === 'browser' || syncType === 'none') {
-                showToast('Select a cloud provider first', 'info');
-                return;
-            }
-            
-            showToast('Syncing to ' + capitalize(syncType) + '...', 'info');
+            showToast('Syncing...', 'info');
             try {
                 const r = await chrome.runtime.sendMessage({ action: 'syncNow' });
-                const timestamp = new Date().toLocaleTimeString();
-                
                 if (elements.syncLog) {
-                    const status = r?.success ? '✓ Sync completed' : `✕ ${r?.error || 'Failed'}`;
-                    elements.syncLog.value = `[${timestamp}] ${status}\n` + (elements.syncLog.value || '');
+                    elements.syncLog.value = (elements.syncLog.value || '') + 
+                        `[${new Date().toLocaleTimeString()}] ${r?.success ? 'Sync completed' : (r?.error || 'Failed')}\n`;
                 }
-                
-                if (r?.success) { 
-                    await loadScripts(); 
-                    updateStats();
-                    const msg = r.scriptsCount ? `Synced ${r.scriptsCount} scripts` : 'Sync complete!';
-                    showToast(msg, 'success');
-                } else {
-                    showToast(r?.error || 'Sync failed', 'error');
-                }
-            } catch (e) { 
-                showToast('Sync failed: ' + e.message, 'error'); 
-            }
+                if (r?.success) { await loadScripts(); updateStats(); }
+                showToast(r?.success ? 'Done' : (r?.error || 'Failed'), r?.success ? 'success' : 'error');
+            } catch (e) { showToast('Failed', 'error'); }
         });
         
         elements.btnSyncReset?.addEventListener('click', async () => {
@@ -2229,51 +1988,20 @@
             const isZip = file.name.endsWith('.zip');
             if (!await showConfirmModal('Import', `Import from ${file.name}?`)) return;
             try {
-                showToast('Importing...', 'info');
                 if (isZip) {
                     const buf = await file.arrayBuffer();
-                    // Convert to base64 using chunked binary string building (to avoid stack overflow)
-                    // then single btoa call (required for valid base64)
-                    const bytes = new Uint8Array(buf);
-                    const CHUNK_SIZE = 0x8000; // 32KB
-                    let binary = '';
-                    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-                        const chunk = bytes.subarray(i, Math.min(i + CHUNK_SIZE, bytes.length));
-                        binary += String.fromCharCode.apply(null, chunk);
-                    }
-                    const b64 = btoa(binary);
+                    const b64 = btoa(new Uint8Array(buf).reduce((d, b) => d + String.fromCharCode(b), ''));
                     const r = await chrome.runtime.sendMessage({ action: 'importFromZip', zipData: b64, options: { overwrite: true } });
-                    if (r?.error) {
-                        showToast(r.error, 'error');
-                    } else {
-                        await loadScripts();
-                        await loadSettings();
-                        updateStats();
-                        showImportSuccessModal({
-                            imported: r?.imported || 0,
-                            skipped: r?.skipped || 0,
-                            errors: r?.errors || [],
-                            filename: file.name
-                        });
-                    }
+                    showToast(r?.error ? r.error : `Imported ${r?.imported || 0}`, r?.error ? 'error' : 'success');
                 } else {
                     const data = JSON.parse(await file.text());
-                    const r = await chrome.runtime.sendMessage({ action: 'importAll', data: { data, options: { overwrite: true } } });
-                    await loadScripts();
-                    await loadSettings();
-                    updateStats();
-                    showImportSuccessModal({
-                        imported: data.scripts?.length || 0,
-                        skipped: 0,
-                        errors: [],
-                        filename: file.name
-                    });
+                    await chrome.runtime.sendMessage({ action: 'importAll', data: { data, options: { overwrite: true } } });
+                    showToast('Imported', 'success');
                 }
-            } catch (err) { 
-                showToast('Failed: ' + err.message, 'error'); 
-            }
-            // Reset file input
-            e.target.value = '';
+                await loadScripts();
+                await loadSettings();
+                updateStats();
+            } catch (err) { showToast('Failed: ' + err.message, 'error'); }
         });
 
         elements.btnInstallFromUrl?.addEventListener('click', installFromUrl);
@@ -2292,100 +2020,11 @@
             try {
                 const data = JSON.parse(txt);
                 if (!await showConfirmModal('Import', `Import ${data.scripts?.length || 0} scripts?`)) return;
-                showToast('Importing...', 'info');
                 await chrome.runtime.sendMessage({ action: 'importAll', data: { data, options: { overwrite: true } } });
                 await loadScripts();
                 updateStats();
-                showImportSuccessModal({
-                    imported: data.scripts?.length || 0,
-                    skipped: 0,
-                    errors: [],
-                    filename: 'Textarea import'
-                });
+                showToast('Imported', 'success');
             } catch (e) { showToast('Invalid JSON', 'error'); }
-        });
-        
-        // External Editor - populate script dropdown when switching to utilities tab
-        elements.mainTabs?.forEach(tab => {
-            tab.addEventListener('click', () => {
-                if (tab.dataset.tab === 'utilities') {
-                    populateExternalEditorDropdown();
-                }
-            });
-        });
-        
-        // External Editor - Copy to Clipboard
-        elements.btnCopyToClipboard?.addEventListener('click', async () => {
-            const scriptId = elements.externalEditorScript?.value;
-            if (!scriptId) return showToast('Select a script first', 'error');
-            
-            try {
-                const script = await chrome.runtime.sendMessage({ action: 'getScript', data: { scriptId } });
-                if (script?.code) {
-                    await navigator.clipboard.writeText(script.code);
-                    showToast('Script copied to clipboard', 'success');
-                } else {
-                    showToast('Script not found', 'error');
-                }
-            } catch (e) {
-                showToast('Failed to copy: ' + e.message, 'error');
-            }
-        });
-        
-        // External Editor - Import from Clipboard
-        elements.btnImportFromClipboard?.addEventListener('click', async () => {
-            const scriptId = elements.externalEditorScript?.value;
-            if (!scriptId) return showToast('Select a script first', 'error');
-            
-            try {
-                const code = await navigator.clipboard.readText();
-                if (!code || !code.trim()) {
-                    return showToast('Clipboard is empty', 'error');
-                }
-                
-                // Check if it looks like userscript code
-                if (!code.includes('==UserScript==')) {
-                    if (!await showConfirmModal('Import', 'Clipboard content doesn\'t look like a userscript. Import anyway?')) {
-                        return;
-                    }
-                }
-                
-                const result = await chrome.runtime.sendMessage({ 
-                    action: 'updateScript', 
-                    data: { scriptId, code } 
-                });
-                
-                if (result?.success) {
-                    showToast('Script updated from clipboard', 'success');
-                    await loadScripts();
-                } else {
-                    showToast('Failed to update: ' + (result?.error || 'Unknown error'), 'error');
-                }
-            } catch (e) {
-                showToast('Failed to read clipboard: ' + e.message, 'error');
-            }
-        });
-        
-        // External Editor - Open in vscode.dev
-        elements.btnOpenInVSCode?.addEventListener('click', async () => {
-            const scriptId = elements.externalEditorScript?.value;
-            if (!scriptId) return showToast('Select a script first', 'error');
-            
-            try {
-                const script = await chrome.runtime.sendMessage({ action: 'getScript', data: { scriptId } });
-                if (script?.code) {
-                    // Copy to clipboard first
-                    await navigator.clipboard.writeText(script.code);
-                    
-                    // Open vscode.dev in new tab - user can paste from clipboard
-                    window.open('https://vscode.dev/', '_blank');
-                    showToast('Code copied. Paste in vscode.dev with Ctrl+V', 'success');
-                } else {
-                    showToast('Script not found', 'error');
-                }
-            } catch (e) {
-                showToast('Failed: ' + e.message, 'error');
-            }
         });
 
         // Modal

@@ -1,7 +1,7 @@
 # EspressoMonkey ☕🐵
 
 <p align="center">
-<img width="710" height="658" alt="logo" src="https://github.com/user-attachments/assets/390124de-8f90-4557-acb1-eb91d9986349" />
+  <img src="https://raw.githubusercontent.com/SysAdminDoc/EspressoMonkey/refs/heads/main/images/logo128.ico" alt="EspressoMonkey Logo" width="128" height="128">
 </p>
 
 <p align="center">
@@ -70,11 +70,9 @@ Sync your scripts across devices with multiple providers:
 - **External Editor Support** - Open scripts in vscode.dev
 
 ### Security Features
-- **@sandbox Support** - Raw, JavaScript, and DOM isolation modes
 - **Blacklist System** - Block scripts from running on specific sites
   - Remote blacklists (auto-updated)
   - Manual blacklist entries
-  - Three severity levels (Warn, Block with override, Always block)
 - **Permission Analysis** - Visual breakdown of requested `@grant` permissions
 - **@connect Validation** - Restrict network access domains
 - **CSP Handling** - Works on sites with strict Content Security Policies
@@ -84,7 +82,6 @@ Sync your scripts across devices with multiple providers:
 - **JSON Format** - Text-based backup
 - **URL Import** - Install directly from URL
 - **Clipboard Import** - Paste scripts from clipboard
-- **Chrome Extension Export** - Convert any userscript to standalone extension
 
 ### Internationalization
 Available in 8 languages:
@@ -180,7 +177,6 @@ EspressoMonkey supports all standard userscript metadata:
 // @resource       myCSS https://example.com/style.css
 // @icon           https://example.com/icon.png
 // @run-at         document-end
-// @sandbox        raw
 // @connect        api.example.com
 // @downloadURL    https://example.com/script.user.js
 // @updateURL      https://example.com/script.meta.js
@@ -197,11 +193,6 @@ EspressoMonkey supports all standard userscript metadata:
 - `document-body` - Run when body element exists
 - `document-end` - Run when DOM is complete (default)
 - `document-idle` - Run when page is fully loaded
-
-### @sandbox Modes
-- `raw` - Full page access (default)
-- `JavaScript` / `js` - Isolated JavaScript context
-- `DOM` / `dom` - Separate DOM context
 
 ---
 
@@ -224,9 +215,7 @@ EspressoMonkey takes security seriously:
 | Manifest V3 | ✅ | ❌ MV2 | ✅ |
 | Full GM API | ✅ 24+ functions | ✅ | ✅ |
 | Cloud Sync | ✅ 5 providers | ✅ | ✅ |
-| Extension Export | ✅ | ❌ | ❌ |
 | Open Source | ✅ MIT | ❌ | ✅ |
-| @sandbox Support | ✅ | ✅ | ❌ |
 | Free | ✅ | Freemium | ✅ |
 
 ---

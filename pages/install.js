@@ -352,9 +352,6 @@ function renderInstallUI(sourceUrl) {
   html += `
     <div class="actions">
       <button class="btn btn-secondary" id="btn-cancel">Cancel</button>
-      <button class="btn btn-export" id="btn-export-ext" title="Export as standalone Chrome extension">
-        📦 Export as Extension
-      </button>
       <button class="btn ${isUpdate ? 'btn-update' : 'btn-primary'}" id="btn-install">
         ${isUpdate ? '⬆️ Update Script' : isReinstall ? '🔄 Reinstall Script' : '📥 Install Script'}
       </button>
@@ -370,7 +367,6 @@ function renderInstallUI(sourceUrl) {
   document.getElementById('btn-cancel').addEventListener('click', handleCancel);
   document.getElementById('btn-install').addEventListener('click', handleInstall);
   document.getElementById('toggle-code').addEventListener('click', toggleCodePreview);
-  document.getElementById('btn-export-ext').addEventListener('click', showExportModal);
   
   document.getElementById('enable-install')?.addEventListener('change', (e) => {
     enableOnInstall = e.target.checked;
@@ -379,10 +375,6 @@ function renderInstallUI(sourceUrl) {
   document.getElementById('auto-update')?.addEventListener('change', (e) => {
     autoUpdate = e.target.checked;
   });
-  
-  // Export modal listeners
-  document.getElementById('btn-export-cancel')?.addEventListener('click', hideExportModal);
-  document.getElementById('btn-export-download')?.addEventListener('click', handleExportExtension);
 }
 
 function setupCodePreview() {
@@ -465,12 +457,9 @@ function showError(title, message) {
       <div class="error-icon">❌</div>
       <div class="error-title">${escapeHtml(title)}</div>
       <div class="error-message">${escapeHtml(message)}</div>
-      <button class="btn btn-secondary" id="btnErrorClose">Close</button>
+      <button class="btn btn-secondary" onclick="window.close()">Close</button>
     </div>
   `;
-  
-  // Attach event listener (CSP-compliant)
-  document.getElementById('btnErrorClose')?.addEventListener('click', () => window.close());
 }
 
 function showSuccess(name, action) {
@@ -525,109 +514,6 @@ function compareVersions(v1, v2) {
   }
   
   return 0;
-}
-
-// Export Modal Functions
-function showExportModal() {
-  const modal = document.getElementById('exportModal');
-  if (modal) {
-    modal.classList.add('visible');
-  }
-}
-
-function hideExportModal() {
-  const modal = document.getElementById('exportModal');
-  if (modal) {
-    modal.classList.remove('visible');
-  }
-}
-
-async function handleExportExtension() {
-  const btn = document.getElementById('btn-export-download');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner" style="width: 14px; height: 14px; border-width: 2px; margin: 0; display: inline-block;"></span> Generating...';
-  
-  try {
-    // Request the background script to generate the extension package
-    const result = await chrome.runtime.sendMessage({
-      action: 'generateExtensionPackage',
-      data: {
-        code: scriptCode,
-        meta: scriptMeta
-      }
-    });
-    
-    if (result.error) {
-      throw new Error(result.error);
-    }
-    
-    // Convert base64 to blob and download
-    const binaryString = atob(result.zipBase64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const blob = new Blob([bytes], { type: 'application/zip' });
-    
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = result.filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Close modal and show success
-    hideExportModal();
-    showExportSuccess();
-    
-  } catch (e) {
-    console.error('Export failed:', e);
-    alert('Failed to export extension: ' + e.message);
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-  }
-}
-
-function showExportSuccess() {
-  const content = document.getElementById('content');
-  const currentContent = content.innerHTML;
-  
-  // Show temporary success message
-  const successDiv = document.createElement('div');
-  successDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--accent-bg);
-    color: var(--accent);
-    padding: 16px 24px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--accent);
-    box-shadow: var(--shadow);
-    z-index: 1001;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: slideIn 0.3s ease;
-  `;
-  successDiv.innerHTML = `
-    <span style="font-size: 20px;">✅</span>
-    <div>
-      <div style="font-weight: 600; margin-bottom: 2px;">Extension Exported!</div>
-      <div style="font-size: 12px; opacity: 0.8;">Check your downloads folder</div>
-    </div>
-  `;
-  document.body.appendChild(successDiv);
-  
-  // Remove after 3 seconds
-  setTimeout(() => {
-    successDiv.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => successDiv.remove(), 300);
-  }, 3000);
 }
 
 // Initialize

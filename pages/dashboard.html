@@ -1192,24 +1192,16 @@
                     <div class="setting-row">
                         <span class="label-text">Language:</span>
                         <select class="select-field" id="settingsLanguage" style="min-width: 180px;">
-                            <option value="auto">Auto (Browser Default)</option>
+                            <option value="default">Browser Default</option>
                             <option value="en">English</option>
-                            <option value="de">Deutsch (German)</option>
-                            <option value="es">Español (Spanish)</option>
-                            <option value="fr">Français (French)</option>
-                            <option value="ja">日本語 (Japanese)</option>
-                            <option value="pt">Português (Portuguese)</option>
-                            <option value="ru">Русский (Russian)</option>
-                            <option value="zh">中文 (Chinese)</option>
+                            <option value="de">Deutsch</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="ja">日本語</option>
+                            <option value="zh-CN">简体中文</option>
+                            <option value="zh-TW">繁體中文</option>
                         </select>
-                        <span class="help-icon" title="Interface language - restart required for Chrome i18n strings">?</span>
-                    </div>
-                    <div class="setting-row" id="languageRestartNotice" style="display: none;">
-                        <div class="notice-box warning" style="padding: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 6px; font-size: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
-                            <span>⚠️</span>
-                            <span>Language changed. Reload the extension page to apply.</span>
-                            <button class="btn btn-sm" id="btnReloadForLanguage" style="margin-left: auto; padding: 4px 12px; font-size: 11px;">Reload Now</button>
-                        </div>
+                        <span class="help-icon" title="Interface language">!</span>
                     </div>
                     <div class="setting-row">
                         <label><input type="checkbox" id="settingsAutoReload" checked> Auto reload pages</label>
@@ -1615,22 +1607,14 @@
                         </select>
                     </div>
                     <div class="setting-row">
-                        <span class="label-text">Default Sandbox Mode:</span>
-                        <select class="select-field" id="settingsDefaultSandboxMode">
-                            <option value="raw" selected>Raw (page context)</option>
-                            <option value="js">JavaScript (CSP bypass)</option>
-                            <option value="dom">DOM (extension context)</option>
+                        <span class="label-text">Sandbox Mode:</span>
+                        <select class="select-field" id="settingsSandboxMode">
+                            <option value="default" selected>Default</option>
+                            <option value="raw">Raw</option>
+                            <option value="js">JavaScript</option>
+                            <option value="dom">DOM</option>
                         </select>
-                        <span class="help-icon" title="Raw: Full page access. JavaScript: Attempts CSP bypass. DOM: More secure, limited to DOM access.">?</span>
-                    </div>
-                    <div class="setting-row">
-                        <span class="label-text">Allowed Sandbox Modes:</span>
-                        <div style="display: flex; gap: 15px; margin-top: 5px;">
-                            <label><input type="checkbox" id="settingsAllowSandboxRaw" checked> Raw</label>
-                            <label><input type="checkbox" id="settingsAllowSandboxJs" checked> JavaScript</label>
-                            <label><input type="checkbox" id="settingsAllowSandboxDom" checked> DOM</label>
-                        </div>
-                        <span class="help-icon" title="Which @sandbox modes scripts are allowed to use">?</span>
+                        <span class="help-icon" title="Script execution environment">?</span>
                     </div>
                     <div class="setting-row">
                         <span class="label-text">Modify existing content security policy (CSP) headers:</span>
@@ -1649,10 +1633,6 @@
                         </select>
                     </div>
                     <div class="setting-row">
-                        <label><input type="checkbox" id="settingsHttpHeaderWarnings" checked> Show warnings when header modification fails</label>
-                        <span class="help-icon" title="Notify when another extension interferes with GM_xmlhttpRequest headers">?</span>
-                    </div>
-                    <div class="setting-row">
                         <span class="label-text">Default tab types to run scripts in:</span>
                         <select class="select-field" id="settingsDefaultTabTypes">
                             <option value="all" selected>All tabs</option>
@@ -1667,10 +1647,6 @@
                             <option value="ask">Ask</option>
                             <option value="none">None</option>
                         </select>
-                    </div>
-                    <div class="setting-row">
-                        <label><input type="checkbox" id="settingsAllowFileUrls"> Allow file:// URLs in @require (local development)</label>
-                        <span class="help-icon" title="Enable to use @require file://C:/path/to/script.js for local development. Requires 'Allow access to file URLs' in chrome://extensions">?</span>
                     </div>
                     <div class="setting-row">
                         <span class="label-text">Allow scripts to access cookies:</span>
@@ -1782,20 +1758,21 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                     <div class="setting-row">
                         <span class="label-text">Userscript Blacklist Source:</span>
                         <select class="select-field" id="settingsBlacklistSource">
-                            <option value="both" selected>Remote + Manual</option>
+                            <option value="remote_manual" selected>Remote + Manual</option>
                             <option value="remote">Remote only</option>
                             <option value="manual">Manual only</option>
                             <option value="disabled">Disabled</option>
                         </select>
                     </div>
                     <div class="setting-row">
-                        <span class="label-text">Blacklist Severity:</span>
-                        <select class="select-field" id="settingsBlacklistSeverity">
-                            <option value="low">Low (warn but allow)</option>
-                            <option value="medium" selected>Medium (block with override)</option>
-                            <option value="high">High (always block)</option>
+                        <span class="label-text">Block From Severity Level:</span>
+                        <select class="select-field" id="settingsBlockSeverity">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
                         </select>
-                        <span class="help-icon" title="Low: Shows warning but allows script to run. Medium: Blocks with 'Override' option. High: Always blocks, no override.">?</span>
                     </div>
                     <div class="setting-row">
                         <span class="label-text">Manual Userscript and @require Blacklist:</span>
@@ -1966,33 +1943,6 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                     <div class="setting-row">
                         <input type="text" class="input-field wide" id="importUrlInput" placeholder="https://example.com/script.user.js">
                         <button class="btn" id="btnInstallFromUrl" style="margin-left:10px">Install</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <div class="section-label">External Editor</div>
-                <div class="section-content">
-                    <div class="setting-row">
-                        <span class="label-text">Quick script clipboard operations:</span>
-                    </div>
-                    <div class="setting-row">
-                        <select class="select-field" id="externalEditorScript" style="flex: 1; margin-right: 10px;">
-                            <option value="">Select a script...</option>
-                        </select>
-                    </div>
-                    <div class="setting-row">
-                        <div class="btn-group">
-                            <button class="btn" id="btnCopyToClipboard" title="Copy selected script code to clipboard">📋 Copy to Clipboard</button>
-                            <button class="btn" id="btnImportFromClipboard" title="Update selected script from clipboard">📥 Import from Clipboard</button>
-                            <button class="btn" id="btnOpenInVSCode" title="Open in vscode.dev (copies code first)">🔗 Open in vscode.dev</button>
-                        </div>
-                    </div>
-                    <div class="setting-row" style="margin-top: 10px;">
-                        <span style="color: var(--text-muted); font-size: 12px;">
-                            💡 For local file development: Add <code style="background: var(--bg-input); padding: 2px 5px; border-radius: 3px;">@require file://C:/path/to/script.js</code> to your script. 
-                            Enable "Allow file:// URLs" in Security settings and "Allow access to file URLs" in chrome://extensions.
-                        </span>
                     </div>
                 </div>
             </div>

@@ -2695,126 +2695,6 @@ function unzipSync(data, opts) {
 // Make fflate available as a variable
 var fflate = self.fflate;
 
-// Helper function to create a minimal PNG icon for extension export
-// Creates a simple colored square PNG
-function createMinimalPng(size) {
-  // PNG signature
-  const signature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-  
-  // Helper to create CRC32
-  function crc32(data) {
-    let crc = -1;
-    for (let i = 0; i < data.length; i++) {
-      crc ^= data[i];
-      for (let j = 0; j < 8; j++) {
-        crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
-      }
-    }
-    return (crc ^ -1) >>> 0;
-  }
-  
-  // Helper to create a chunk
-  function makeChunk(type, data) {
-    const typeBytes = type.split('').map(c => c.charCodeAt(0));
-    const length = data.length;
-    const chunk = new Uint8Array(4 + 4 + data.length + 4);
-    // Length (big endian)
-    chunk[0] = (length >> 24) & 0xFF;
-    chunk[1] = (length >> 16) & 0xFF;
-    chunk[2] = (length >> 8) & 0xFF;
-    chunk[3] = length & 0xFF;
-    // Type
-    chunk[4] = typeBytes[0];
-    chunk[5] = typeBytes[1];
-    chunk[6] = typeBytes[2];
-    chunk[7] = typeBytes[3];
-    // Data
-    for (let i = 0; i < data.length; i++) {
-      chunk[8 + i] = data[i];
-    }
-    // CRC (of type + data)
-    const crcData = new Uint8Array(4 + data.length);
-    crcData[0] = typeBytes[0];
-    crcData[1] = typeBytes[1];
-    crcData[2] = typeBytes[2];
-    crcData[3] = typeBytes[3];
-    for (let i = 0; i < data.length; i++) {
-      crcData[4 + i] = data[i];
-    }
-    const crc = crc32(crcData);
-    chunk[8 + data.length] = (crc >> 24) & 0xFF;
-    chunk[8 + data.length + 1] = (crc >> 16) & 0xFF;
-    chunk[8 + data.length + 2] = (crc >> 8) & 0xFF;
-    chunk[8 + data.length + 3] = crc & 0xFF;
-    return chunk;
-  }
-  
-  // IHDR chunk data
-  const ihdrData = new Uint8Array(13);
-  // Width (big endian)
-  ihdrData[0] = (size >> 24) & 0xFF;
-  ihdrData[1] = (size >> 16) & 0xFF;
-  ihdrData[2] = (size >> 8) & 0xFF;
-  ihdrData[3] = size & 0xFF;
-  // Height (big endian)
-  ihdrData[4] = (size >> 24) & 0xFF;
-  ihdrData[5] = (size >> 16) & 0xFF;
-  ihdrData[6] = (size >> 8) & 0xFF;
-  ihdrData[7] = size & 0xFF;
-  // Bit depth
-  ihdrData[8] = 8;
-  // Color type (2 = RGB)
-  ihdrData[9] = 2;
-  // Compression, filter, interlace
-  ihdrData[10] = 0;
-  ihdrData[11] = 0;
-  ihdrData[12] = 0;
-  
-  // Create image data (green color for EspressoMonkey theme)
-  // Each row has a filter byte (0) followed by RGB pixels
-  const rawData = new Uint8Array(size * (1 + size * 3));
-  for (let y = 0; y < size; y++) {
-    const rowStart = y * (1 + size * 3);
-    rawData[rowStart] = 0; // Filter byte
-    for (let x = 0; x < size; x++) {
-      const pixelStart = rowStart + 1 + x * 3;
-      // Green color (#22c55e)
-      rawData[pixelStart] = 0x22;     // R
-      rawData[pixelStart + 1] = 0xc5; // G
-      rawData[pixelStart + 2] = 0x5e; // B
-    }
-  }
-  
-  // Compress using deflate
-  const compressed = fflate ? fflate.deflateSync(rawData, { level: 9 }) : rawData;
-  
-  // Build PNG
-  const ihdrChunk = makeChunk('IHDR', ihdrData);
-  const idatChunk = makeChunk('IDAT', compressed);
-  const iendChunk = makeChunk('IEND', new Uint8Array(0));
-  
-  // Combine all parts
-  const png = new Uint8Array(
-    signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length
-  );
-  
-  let offset = 0;
-  for (let i = 0; i < signature.length; i++) {
-    png[offset++] = signature[i];
-  }
-  for (let i = 0; i < ihdrChunk.length; i++) {
-    png[offset++] = ihdrChunk[i];
-  }
-  for (let i = 0; i < idatChunk.length; i++) {
-    png[offset++] = idatChunk[i];
-  }
-  for (let i = 0; i < iendChunk.length; i++) {
-    png[offset++] = iendChunk[i];
-  }
-  
-  return png;
-}
-
 // ============================================================================
 // INLINED: cloud-sync.js - Cloud Sync Providers
 // (inlined to bypass Chrome service worker importScripts caching)
@@ -3760,23 +3640,7 @@ const SettingsManager = {
     xhrTimeout: 30000,
     
     // Global Blacklist
-    blacklist: [],
-    
-    // Sandbox Settings (NEW - @sandbox support)
-    defaultSandboxMode: 'raw',           // 'raw' | 'js' | 'dom'
-    allowedSandboxModes: ['raw', 'js', 'dom'],  // Which modes scripts can use
-    
-    // Blacklist Severity (NEW)
-    blacklistSeverity: 'medium',         // 'low' | 'medium' | 'high'
-    blacklistSource: 'both',             // 'remote' | 'manual' | 'both'
-    
-    // External Editor Support (NEW)
-    allowFileUrls: false,                // Allow file:// in @require
-    fileUrlWarningShown: false,          // Track if we've shown the warning
-    
-    // HTTP Headers (NEW)
-    allowHttpHeaders: true,              // Allow GM_xmlhttpRequest header modification
-    httpHeaderWarnings: true             // Show warnings when header modification fails
+    blacklist: []
   },
   
   cache: null,
@@ -4377,13 +4241,11 @@ function shouldRunScript(script, url, isFrame) {
   // Check noframes
   if (isFrame && meta.noframes) return false;
   
-  // Check blacklist with severity levels
+  // Check blacklist
   const settings = SettingsManager.cache || {};
-  const blacklistResult = checkBlacklist(url, settings);
-  if (blacklistResult.blocked && blacklistResult.severity === 'high') {
-    return false;  // Always block for high severity
+  if (settings.blacklist?.some(pattern => matchPattern(pattern, url))) {
+    return false;
   }
-  // Note: medium and low severity are handled in the UI layer
   
   // Check exclude patterns
   const excludes = [...(meta.exclude || []), ...(meta.excludeMatch || [])];
@@ -4396,33 +4258,6 @@ function shouldRunScript(script, url, isFrame) {
   if (includes.length === 0) return false;
   
   return includes.some(pattern => matchPattern(pattern, url));
-}
-
-// Check URL against blacklist with severity handling
-function checkBlacklist(url, settings = {}) {
-  const blacklist = settings.blacklist || [];
-  const severity = settings.blacklistSeverity || 'medium';
-  const source = settings.blacklistSource || 'both';
-  
-  // Check if URL matches any blacklist pattern
-  const isBlacklisted = blacklist.some(pattern => matchPattern(pattern, url));
-  
-  if (!isBlacklisted) {
-    return { blocked: false, severity: null, pattern: null };
-  }
-  
-  const matchedPattern = blacklist.find(pattern => matchPattern(pattern, url));
-  
-  return {
-    blocked: true,
-    severity: severity,
-    pattern: matchedPattern,
-    source: source,
-    // Determine action based on severity
-    action: severity === 'high' ? 'block' : 
-            severity === 'medium' ? 'block_with_override' : 
-            'warn'
-  };
 }
 
 // ============================================================================
@@ -4530,18 +4365,10 @@ const CloudSync = {
   
   async sync() {
     const settings = await SettingsManager.get();
-    // Support both old (syncEnabled/syncProvider) and new (enableSync/syncType) settings
-    const isEnabled = settings.enableSync || settings.syncEnabled;
-    const provider = settings.syncType || settings.syncProvider || 'none';
+    if (!settings.syncEnabled || settings.syncProvider === 'none') return;
     
-    if (!isEnabled || provider === 'none' || provider === 'browser') {
-      return { success: false, error: 'Sync not enabled or using browser sync' };
-    }
-    
-    const syncProvider = this.providers[provider];
-    if (!syncProvider) {
-      return { success: false, error: `Unknown sync provider: ${provider}` };
-    }
+    const provider = this.providers[settings.syncProvider];
+    if (!provider) return;
     
     try {
       // Get local data
@@ -4559,7 +4386,7 @@ const CloudSync = {
       };
       
       // Get remote data
-      const remoteData = await syncProvider.download(settings);
+      const remoteData = await provider.download(settings);
       
       if (remoteData) {
         // Merge: prefer newer versions
@@ -4586,17 +4413,17 @@ const CloudSync = {
         
         // Upload merged data
         merged.timestamp = Date.now();
-        await syncProvider.upload(merged, settings);
+        await provider.upload(merged, settings);
       } else {
         // First sync, just upload
-        await syncProvider.upload(localData, settings);
+        await provider.upload(localData, settings);
       }
       
       await SettingsManager.set('lastSync', Date.now());
-      return { success: true, scriptsCount: localData.scripts.length };
+      return { success: true };
     } catch (e) {
       console.error('[EspressoMonkey] Sync failed:', e);
-      return { success: false, error: e.message };
+      return { error: e.message };
     }
   },
   
@@ -4752,18 +4579,8 @@ async function exportToZip() {
   }
   
   // Generate zip as Uint8Array then convert to base64
-  // Use chunked approach to avoid stack overflow with large arrays
   const zipData = fflate.zipSync(files, { level: 6 });
-  
-  // Convert Uint8Array to base64 in chunks to avoid call stack overflow
-  const CHUNK_SIZE = 0x8000; // 32KB chunks
-  let binary = '';
-  for (let i = 0; i < zipData.length; i += CHUNK_SIZE) {
-    const chunk = zipData.subarray(i, Math.min(i + CHUNK_SIZE, zipData.length));
-    binary += String.fromCharCode.apply(null, chunk);
-  }
-  const base64 = btoa(binary);
-  
+  const base64 = btoa(String.fromCharCode(...zipData));
   return { zipData: base64, filename: `espressomonkey-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.zip` };
 }
 
@@ -5009,253 +4826,6 @@ async function handleMessage(message, sender) {
         return { success: true, scriptId: id, script: { ...script, metadata: script.meta } };
       }
       
-      case 'generateExtensionPackage': {
-        // Generate a standalone Chrome extension from a userscript
-        try {
-          const { code, meta } = data;
-          
-          // Sanitize the script name for use in filenames
-          const safeName = (meta.name || 'userscript')
-            .replace(/[^a-zA-Z0-9_-]/g, '_')
-            .replace(/_+/g, '_')
-            .substring(0, 50);
-          
-          // Generate manifest.json
-          const manifest = {
-            manifest_version: 3,
-            name: meta.name || 'Exported Userscript',
-            version: meta.version || '1.0.0',
-            description: meta.description || 'Userscript exported from EspressoMonkey',
-            icons: {
-              "16": "icon16.png",
-              "48": "icon48.png",
-              "128": "icon128.png"
-            },
-            content_scripts: [{
-              matches: [...(meta.match || []), ...(meta.include || ['<all_urls>'])].filter(m => m && m !== 'none'),
-              exclude_matches: [...(meta.exclude || []), ...(meta['exclude-match'] || [])].filter(e => e),
-              js: ['script.js'],
-              run_at: convertRunAt(meta['run-at'] || 'document-idle'),
-              all_frames: !meta.noframes
-            }],
-            permissions: []
-          };
-          
-          // Add host permissions if needed for GM_xmlhttpRequest
-          const grants = meta.grant || [];
-          if (grants.includes('GM_xmlhttpRequest') || grants.includes('GM.xmlHttpRequest')) {
-            manifest.host_permissions = ['<all_urls>'];
-          }
-          
-          // Handle @require by fetching and inlining scripts
-          let inlinedRequires = '';
-          if (meta.require && meta.require.length > 0) {
-            for (const reqUrl of meta.require) {
-              try {
-                // Skip file:// URLs and other non-http URLs
-                if (!reqUrl.startsWith('http://') && !reqUrl.startsWith('https://')) {
-                  inlinedRequires += `// @require ${reqUrl} - skipped (non-http URL)\n`;
-                  continue;
-                }
-                const resp = await fetch(reqUrl);
-                if (resp.ok) {
-                  const reqCode = await resp.text();
-                  inlinedRequires += `// === @require: ${reqUrl} ===\n${reqCode}\n// === End @require ===\n\n`;
-                } else {
-                  inlinedRequires += `// @require ${reqUrl} - failed to fetch (${resp.status})\n`;
-                }
-              } catch (e) {
-                inlinedRequires += `// @require ${reqUrl} - failed to fetch (${e.message})\n`;
-              }
-            }
-          }
-          
-          // Build the script content with a minimal GM API shim
-          const scriptContent = `// Exported from EspressoMonkey - Standalone Chrome Extension
-// Original script: ${meta.name} v${meta.version}
-// Note: Some GM_* functions may have limited functionality in standalone mode
-
-(function() {
-  'use strict';
-  
-  // Minimal GM API Shim for standalone extension
-  const GM_STORAGE_KEY = 'espressomonkey_export_${safeName}';
-  
-  function GM_getValue(key, defaultValue) {
-    try {
-      const data = JSON.parse(localStorage.getItem(GM_STORAGE_KEY) || '{}');
-      return key in data ? data[key] : defaultValue;
-    } catch { return defaultValue; }
-  }
-  
-  function GM_setValue(key, value) {
-    try {
-      const data = JSON.parse(localStorage.getItem(GM_STORAGE_KEY) || '{}');
-      data[key] = value;
-      localStorage.setItem(GM_STORAGE_KEY, JSON.stringify(data));
-    } catch (e) { console.error('GM_setValue error:', e); }
-  }
-  
-  function GM_deleteValue(key) {
-    try {
-      const data = JSON.parse(localStorage.getItem(GM_STORAGE_KEY) || '{}');
-      delete data[key];
-      localStorage.setItem(GM_STORAGE_KEY, JSON.stringify(data));
-    } catch (e) { console.error('GM_deleteValue error:', e); }
-  }
-  
-  function GM_listValues() {
-    try {
-      const data = JSON.parse(localStorage.getItem(GM_STORAGE_KEY) || '{}');
-      return Object.keys(data);
-    } catch { return []; }
-  }
-  
-  function GM_addStyle(css) {
-    const style = document.createElement('style');
-    style.textContent = css;
-    (document.head || document.documentElement).appendChild(style);
-    return style;
-  }
-  
-  function GM_log(...args) {
-    console.log('[${meta.name}]', ...args);
-  }
-  
-  function GM_openInTab(url, options) {
-    window.open(url, '_blank');
-  }
-  
-  function GM_setClipboard(text) {
-    navigator.clipboard.writeText(text).catch(e => console.error('Clipboard error:', e));
-  }
-  
-  function GM_xmlhttpRequest(details) {
-    // Simplified XHR - CORS restrictions may apply
-    const xhr = new XMLHttpRequest();
-    xhr.open(details.method || 'GET', details.url, true);
-    
-    if (details.headers) {
-      for (const [k, v] of Object.entries(details.headers)) {
-        try { xhr.setRequestHeader(k, v); } catch (e) {}
-      }
-    }
-    
-    xhr.onload = () => {
-      const response = {
-        responseText: xhr.responseText,
-        response: xhr.response,
-        status: xhr.status,
-        statusText: xhr.statusText,
-        readyState: xhr.readyState,
-        responseHeaders: xhr.getAllResponseHeaders(),
-        finalUrl: xhr.responseURL
-      };
-      if (details.onload) details.onload(response);
-    };
-    
-    xhr.onerror = () => {
-      if (details.onerror) details.onerror({ error: 'Network error' });
-    };
-    
-    xhr.send(details.data);
-    return { abort: () => xhr.abort() };
-  }
-  
-  const GM_info = {
-    script: {
-      name: ${JSON.stringify(meta.name || 'Unknown')},
-      version: ${JSON.stringify(meta.version || '1.0.0')},
-      description: ${JSON.stringify(meta.description || '')},
-      author: ${JSON.stringify(meta.author || '')}
-    },
-    scriptHandler: 'EspressoMonkey Export',
-    version: '2.6.0'
-  };
-  
-  // Alias GM.* to GM_*
-  const GM = {
-    getValue: (k, d) => Promise.resolve(GM_getValue(k, d)),
-    setValue: (k, v) => Promise.resolve(GM_setValue(k, v)),
-    deleteValue: (k) => Promise.resolve(GM_deleteValue(k)),
-    listValues: () => Promise.resolve(GM_listValues()),
-    xmlHttpRequest: GM_xmlhttpRequest,
-    openInTab: GM_openInTab,
-    setClipboard: GM_setClipboard,
-    addStyle: GM_addStyle,
-    log: GM_log,
-    info: GM_info
-  };
-  
-  // Expose to global scope
-  window.GM_getValue = GM_getValue;
-  window.GM_setValue = GM_setValue;
-  window.GM_deleteValue = GM_deleteValue;
-  window.GM_listValues = GM_listValues;
-  window.GM_addStyle = GM_addStyle;
-  window.GM_log = GM_log;
-  window.GM_openInTab = GM_openInTab;
-  window.GM_setClipboard = GM_setClipboard;
-  window.GM_xmlhttpRequest = GM_xmlhttpRequest;
-  window.GM_info = GM_info;
-  window.GM = GM;
-
-${inlinedRequires}
-  // ========== Original Userscript ==========
-${code}
-  // ========== End Userscript ==========
-})();
-`;
-
-          // Convert run-at value to Chrome's format
-          function convertRunAt(runAt) {
-            const map = {
-              'document-start': 'document_start',
-              'document-end': 'document_end',
-              'document-idle': 'document_idle',
-              'document-body': 'document_end'
-            };
-            return map[runAt] || 'document_idle';
-          }
-
-          // Create PNG icons (simple colored squares as placeholders)
-          // These are minimal valid PNGs - users should replace them
-          const icon16 = createMinimalPng(16);
-          const icon48 = createMinimalPng(48);
-          const icon128 = createMinimalPng(128);
-          
-          // Create the ZIP file using fflate
-          const zipData = {
-            'manifest.json': strToU8(JSON.stringify(manifest, null, 2)),
-            'script.js': strToU8(scriptContent),
-            'icon16.png': icon16,
-            'icon48.png': icon48,
-            'icon128.png': icon128
-          };
-          
-          const zipped = zipSync(zipData);
-          
-          // Convert to base64 for transfer (chunked to avoid stack overflow)
-          const CHUNK_SIZE = 0x8000; // 32KB chunks
-          let binary = '';
-          for (let i = 0; i < zipped.length; i += CHUNK_SIZE) {
-            const chunk = zipped.subarray(i, Math.min(i + CHUNK_SIZE, zipped.length));
-            binary += String.fromCharCode.apply(null, chunk);
-          }
-          const base64 = btoa(binary);
-          
-          return {
-            success: true,
-            zipBase64: base64,
-            filename: `${safeName}_extension.zip`
-          };
-          
-        } catch (e) {
-          console.error('[EspressoMonkey] Extension export error:', e);
-          return { error: e.message || 'Failed to generate extension package' };
-        }
-      }
-      
       case 'createScript': {
         // Create a new script - similar to saveScript but always generates new ID
         const parsed = parseUserscript(data.code);
@@ -5415,12 +4985,6 @@ ${code}
       case 'getSettings': {
         const settings = await SettingsManager.get();
         return { settings };
-      }
-      
-      // Blacklist check with severity
-      case 'checkBlacklist': {
-        const settings = await SettingsManager.get();
-        return checkBlacklist(data.url, settings);
       }
         
       case 'getSetting':
@@ -5800,33 +5364,6 @@ ${code}
               const isAbort = e.name === 'AbortError';
               const errorType = isAbort ? 'abort' : 'error';
               const errorMsg = isAbort ? 'Request aborted' : (e.message || 'Network error');
-              
-              // HTTP Headers Warning: Check for CORS/header-related failures
-              const hasCustomHeaders = data.headers && Object.keys(data.headers).length > 0;
-              const isCorsError = e.message?.includes('CORS') || 
-                                  e.message?.includes('cross-origin') ||
-                                  e.message?.includes('blocked') ||
-                                  e.message?.includes('network');
-              
-              if (hasCustomHeaders && isCorsError && settings.httpHeaderWarnings && settings.allowHttpHeaders) {
-                // Show warning notification about potential header modification issues
-                try {
-                  chrome.notifications.create({
-                    type: 'basic',
-                    iconUrl: 'images/icon128.png',
-                    title: 'EspressoMonkey - HTTP Headers Warning',
-                    message: `Request to ${new URL(data.url).hostname} failed. Custom headers may have been blocked or modified by another extension or browser policy.`,
-                    priority: 1
-                  });
-                  console.warn('[EspressoMonkey] HTTP Header Warning: Request failed with custom headers. Possible causes: CORS policy, another extension blocking/modifying headers, or browser security restrictions.', {
-                    url: data.url,
-                    headers: Object.keys(data.headers),
-                    error: e.message
-                  });
-                } catch (notifyErr) {
-                  console.warn('[EspressoMonkey] Could not show HTTP Headers warning notification:', notifyErr);
-                }
-              }
               
               sendEvent(errorType, {
                 readyState: 4,
@@ -6532,23 +6069,6 @@ async function registerScript(script) {
     
     const meta = script.meta;
     const settings = script.settings || {};
-    const globalSettings = await SettingsManager.get();
-    
-    // Determine sandbox mode (script setting > global default)
-    // @sandbox values: 'raw', 'js' (JavaScript), 'dom' (DOM-only)
-    let sandboxMode = meta.sandbox || globalSettings.defaultSandboxMode || 'raw';
-    
-    // Normalize sandbox mode
-    if (sandboxMode === 'JavaScript' || sandboxMode === 'javascript') sandboxMode = 'js';
-    if (sandboxMode === 'DOM' || sandboxMode === 'dom') sandboxMode = 'dom';
-    if (sandboxMode === 'Raw' || sandboxMode === 'RAW') sandboxMode = 'raw';
-    
-    // Check if sandbox mode is allowed
-    const allowedModes = globalSettings.allowedSandboxModes || ['raw', 'js', 'dom'];
-    if (!allowedModes.includes(sandboxMode)) {
-      console.warn(`[EspressoMonkey] Sandbox mode '${sandboxMode}' not allowed for ${meta.name}, falling back to 'raw'`);
-      sandboxMode = 'raw';
-    }
     
     // Build match patterns with URL override support
     const matches = [];
@@ -6670,19 +6190,7 @@ async function registerScript(script) {
     const storedValues = await ScriptValues.getAll(script.id) || {};
     
     // Build the script code with GM API wrapper, @require scripts, and pre-loaded storage
-    const wrappedCode = buildWrappedScript(script, requireScripts, storedValues, sandboxMode);
-    
-    // Determine execution world based on sandbox mode
-    // 'raw' and 'js' = USER_SCRIPT world (full page access, unsafeWindow works)
-    // 'dom' = MAIN world but with content script isolation (limited to DOM, more secure)
-    // Note: Chrome's userScripts API uses USER_SCRIPT by default which is isolated
-    // For 'dom' mode, we could use MAIN world but it has security implications
-    let executionWorld = 'USER_SCRIPT';
-    if (sandboxMode === 'dom') {
-      // DOM mode: Use USER_SCRIPT but with reduced API surface
-      // The wrapper will limit what APIs are available
-      executionWorld = 'USER_SCRIPT';
-    }
+    const wrappedCode = buildWrappedScript(script, requireScripts, storedValues);
     
     // Register the script
     await chrome.userScripts.register([{
@@ -6692,10 +6200,10 @@ async function registerScript(script) {
       js: [{ code: wrappedCode }],
       runAt: runAt,
       allFrames: !meta.noframes,
-      world: executionWorld
+      world: 'USER_SCRIPT'
     }]);
     
-    console.log(`[EspressoMonkey] Registered: ${meta.name} (sandbox: ${sandboxMode}, ${requires.length} @require, ${Object.keys(storedValues).length} stored values)`);
+    console.log(`[EspressoMonkey] Registered: ${meta.name} (${requires.length} @require, ${Object.keys(storedValues).length} stored values)`);
   } catch (e) {
     console.error(`[EspressoMonkey] Failed to register ${script.meta.name}:`, e);
   }
@@ -6798,41 +6306,6 @@ function isUnfetchableUrl(url) {
 // Fetch a @require script with caching and fallbacks
 async function fetchRequireScript(url) {
   console.log(`[EspressoMonkey] Fetching @require: ${url}`);
-  
-  // Handle file:// URLs for local development
-  if (url.startsWith('file://')) {
-    const settings = await SettingsManager.get();
-    if (!settings.allowFileUrls) {
-      console.warn(`[EspressoMonkey] file:// URLs are disabled in settings. Enable 'Allow Local Files' to use: ${url}`);
-      // Return a helpful comment instead of failing
-      return `// EspressoMonkey: file:// URLs are disabled in settings
-// To enable local file loading:
-// 1. Go to chrome://extensions
-// 2. Click Details on EspressoMonkey
-// 3. Enable "Allow access to file URLs"
-// 4. In EspressoMonkey Settings, enable "Allow scripts to access local files"
-// Requested file: ${url}
-console.warn('[EspressoMonkey] @require ${url} - file:// URLs disabled');`;
-    }
-    
-    // Check if extension has file:// access
-    try {
-      // Try to fetch the local file
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const code = await response.text();
-      console.log(`[EspressoMonkey] Loaded local file: ${url}`);
-      return code;
-    } catch (e) {
-      console.error(`[EspressoMonkey] Failed to load local file ${url}:`, e.message);
-      console.info('[EspressoMonkey] To use file:// URLs, enable "Allow access to file URLs" in chrome://extensions for EspressoMonkey');
-      return `// EspressoMonkey: Failed to load local file
-// Error: ${e.message}
-// File: ${url}
-// Ensure "Allow access to file URLs" is enabled in chrome://extensions
-console.error('[EspressoMonkey] Failed to load @require ${url}:', ${JSON.stringify(e.message)});`;
-    }
-  }
   
   // Skip URLs that are known to be unfetchable
   if (isUnfetchableUrl(url)) {
@@ -6957,7 +6430,7 @@ async function unregisterScript(scriptId) {
 }
 
 // Build wrapped script code with GM API
-function buildWrappedScript(script, requireScripts = [], preloadedStorage = {}, sandboxMode = 'raw') {
+function buildWrappedScript(script, requireScripts = [], preloadedStorage = {}) {
   const meta = script.meta;
   const grants = meta.grant || ['none'];
   
@@ -6988,35 +6461,6 @@ try {
   // Get the extension ID at build time so it's available in the wrapper
   const extId = chrome.runtime.id;
   
-  // Build script settings for GM_info.script.options
-  const scriptSettings = script.settings || {};
-  const scriptOptions = {
-    check_for_updates: scriptSettings.autoUpdate !== false,
-    override: {
-      orig_excludes: meta.exclude || [],
-      orig_includes: meta.include || [],
-      orig_matches: meta.match || [],
-      use_excludes: scriptSettings.userExcludes || [],
-      use_includes: scriptSettings.userIncludes || [],
-      use_matches: scriptSettings.userMatches || []
-    },
-    run_at: scriptSettings.runAt || meta['run-at'] || 'document-idle'
-  };
-  
-  // Parse antifeatures from metadata
-  const antifeatures = {};
-  if (meta.antifeature && Array.isArray(meta.antifeature)) {
-    for (const af of meta.antifeature) {
-      const parts = af.split(/\s+/);
-      if (parts.length >= 1) {
-        const type = parts[0];
-        const desc = parts.slice(1).join(' ') || '';
-        if (!antifeatures[type]) antifeatures[type] = {};
-        antifeatures[type]['default'] = desc;
-      }
-    }
-  }
-
   const apiInit = `
 (function() {
   'use strict';
@@ -7025,7 +6469,6 @@ try {
   const meta = ${JSON.stringify(meta)};
   const grants = ${JSON.stringify(grants)};
   const grantSet = new Set(grants);
-  const sandboxMode = ${JSON.stringify(sandboxMode)};
   
   // Channel ID for communication with content script bridge
   // Extension ID is injected at build time since chrome.runtime isn't available in USER_SCRIPT world
@@ -7034,77 +6477,30 @@ try {
   // console.log('[EspressoMonkey] Script initializing:', meta.name, 'Channel:', CHANNEL_ID);
   
   // Grant checking - @grant none means NO APIs except GM_info
-  // DOM sandbox mode further restricts available APIs
   const hasNone = grantSet.has('none');
-  const isDomMode = sandboxMode === 'dom';
   const hasGrant = (n) => {
     if (hasNone) return false;
-    // In DOM mode, restrict APIs that access page context
-    if (isDomMode && ['GM_xmlhttpRequest', 'GM.xmlHttpRequest'].includes(n)) {
-      return false;
-    }
     if (grants.length === 0) return true;
     return grantSet.has(n) || grantSet.has('*');
   };
   
-  // Enhanced GM_info - matches Tampermonkey's structure
+  // GM_info - always available
   const GM_info = {
-    // Script metadata
     script: {
       name: meta.name || 'Unknown',
       namespace: meta.namespace || '',
       description: meta.description || '',
       version: meta.version || '1.0',
       author: meta.author || '',
-      copyright: meta.copyright || '',
-      license: meta.license || '',
-      icon: meta.icon || meta.icon64 || '',
-      icon64: meta.icon64 || meta.icon || '',
-      homepage: meta.homepage || meta.homepageURL || meta.website || '',
-      homepageURL: meta.homepageURL || meta.homepage || meta.website || '',
-      website: meta.website || meta.homepage || meta.homepageURL || '',
-      source: meta.source || '',
-      updateURL: meta.updateURL || '',
-      downloadURL: meta.downloadURL || '',
-      supportURL: meta.supportURL || '',
       matches: meta.match || [],
       includes: meta.include || [],
       excludes: meta.exclude || [],
-      'exclude-match': meta.excludeMatch || meta['exclude-match'] || [],
       grants: grants,
-      connects: meta.connect || [],
-      resources: meta.resource || {},
-      runAt: meta['run-at'] || 'document-idle',
-      noframes: !!meta.noframes,
-      unwrap: !!meta.unwrap,
-      antifeatures: ${JSON.stringify(antifeatures)},
-      options: ${JSON.stringify(scriptOptions)},
-      webRequest: null
+      resources: {},
+      runAt: meta['run-at'] || 'document-idle'
     },
-    // Raw metadata block string
-    scriptMetaStr: ${JSON.stringify(script.metaBlock || '')},
-    // Will script check for updates
-    scriptWillUpdate: ${JSON.stringify(scriptSettings.autoUpdate !== false && !!(meta.updateURL || meta.downloadURL))},
-    // Script handler info
     scriptHandler: 'EspressoMonkey',
-    version: '2.6.0',
-    // Platform info
-    platform: {
-      arch: navigator.userAgentData?.architecture || (navigator.platform?.includes('64') ? 'x86-64' : 'x86'),
-      browserName: 'Chrome',
-      browserVersion: navigator.userAgent.match(/Chrome\\/([\\d.]+)/)?.[1] || 'unknown',
-      os: navigator.userAgentData?.platform || navigator.platform || 'unknown'
-    },
-    // Execution context info
-    isIncognito: false, // Will be updated if in incognito
-    isFirstPartyIsolation: false,
-    sandbox: ${JSON.stringify(sandboxMode)},
-    // User agent data (if available)
-    userAgentData: navigator.userAgentData ? {
-      brands: navigator.userAgentData.brands || [],
-      mobile: navigator.userAgentData.mobile || false,
-      platform: navigator.userAgentData.platform || ''
-    } : null
+    version: '2.3.5'
   };
   
   // Storage cache - mutable so we can refresh it with fresh values from background
