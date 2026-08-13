@@ -77,7 +77,7 @@
         _collapsedFolders: new Set(),
         _lastCheckedId: null,
         _quotaWarned: false,
-        settingsPanelFilter: 'all',
+        settingsPanelFilter: 'core',
         utilitiesPanelFilter: 'all',
         backupBrowserFilter: 'all',
         backupBrowserSort: 'newest',
@@ -179,6 +179,44 @@
         security: 'settingsFilterSecuritySettings',
         recovery: 'settingsFilterRecoverySettings'
     };
+    const SETTINGS_CATEGORY_COPY = Object.freeze({
+        all: Object.freeze({
+            titleKey: 'settingsFilterAll',
+            title: 'All settings',
+            descriptionKey: 'settingsAllDescription',
+            description: 'Search and review every ScriptVault preference in one workspace.'
+        }),
+        core: Object.freeze({
+            titleKey: 'settingsFilterCore',
+            title: 'Core',
+            descriptionKey: 'settingsCoreDescription',
+            description: "Configure ScriptVault's core behavior, diagnostics, and recovery defaults."
+        }),
+        workspace: Object.freeze({
+            titleKey: 'settingsFilterWorkspace',
+            title: 'Workspace',
+            descriptionKey: 'settingsWorkspaceDescription',
+            description: 'Customize the interface, editor, menus, tags, and theme.'
+        }),
+        automation: Object.freeze({
+            titleKey: 'settingsFilterAutomation',
+            title: 'Automation',
+            descriptionKey: 'settingsAutomationDescription',
+            description: 'Control updates, external resources, discovery, and secure cross-device sync.'
+        }),
+        security: Object.freeze({
+            titleKey: 'settingsFilterSecurity',
+            title: 'Security',
+            descriptionKey: 'settingsSecurityDescription',
+            description: 'Review runtime policy, permissions, integrity, host access, and experimental safeguards.'
+        }),
+        recovery: Object.freeze({
+            titleKey: 'settingsFilterRecovery',
+            title: 'Recovery',
+            descriptionKey: 'settingsRecoveryDescription',
+            description: 'Protect the vault, restart ScriptVault safely, or reset everything with confirmation.'
+        })
+    });
     const UTILITIES_FILTER_LABELS = {
         all: 'all utilities',
         backup: 'backup utilities',
@@ -338,6 +376,7 @@
         appearance: 'workspace',
         tags: 'workspace',
         'action menu': 'workspace',
+        'theme editor': 'workspace',
         'context menu': 'workspace',
         'userscript search': 'automation',
         'userscript update': 'automation',
@@ -349,7 +388,8 @@
         blackcheck: 'security',
         'downloads beta': 'security',
         experimental: 'security',
-        reset: 'recovery'
+        reset: 'recovery',
+        'recovery actions': 'recovery'
     };
     const DASHBOARD_SCHEMA_DRIVEN_SETTING_SECTIONS = Object.freeze({
         actionMenu: Object.freeze([
@@ -1382,6 +1422,11 @@
         const target = targetId ? document.getElementById(targetId) : null;
         if (!target || target.hidden) return false;
 
+        const containingDisclosure = target.closest('details');
+        const ownedDisclosure = target.querySelector?.(':scope > .settings-security-disclosure');
+        if (containingDisclosure instanceof HTMLDetailsElement) containingDisclosure.open = true;
+        if (ownedDisclosure instanceof HTMLDetailsElement) ownedDisclosure.open = true;
+
         document.querySelectorAll('[data-workbench-focus="true"]').forEach(element => {
             element.removeAttribute('data-workbench-focus');
         });
@@ -2216,6 +2261,7 @@
         elements.scriptConfigFields = document.getElementById('scriptConfigFields');
         elements.btnSaveScriptSettings = document.getElementById('btnSaveScriptSettings');
         elements.btnResetScriptSettings = document.getElementById('btnResetScriptSettings');
+        elements.scriptSettingsSaveStatus = document.getElementById('scriptSettingsSaveStatus');
         
         // URL Override controls
         elements.useOriginalIncludes = document.getElementById('useOriginalIncludes');
@@ -2409,7 +2455,11 @@
         elements.settingsSaveStatus = document.getElementById('settingsSaveStatus');
         elements.settingsFilterStatus = document.getElementById('settingsFilterStatus');
         elements.settingsEmptyState = document.getElementById('settingsEmptyState');
+        elements.settingsCategoryTitle = document.getElementById('settingsCategoryTitle');
+        elements.settingsCategoryDescription = document.getElementById('settingsCategoryDescription');
+        elements.settingsSecurityAnchors = document.getElementById('settingsSecurityAnchors');
         elements.settingsFilterButtons = document.querySelectorAll('#settingsCategoryFilters .settings-filter');
+        elements.btnOpenBackupRestore = document.getElementById('btnOpenBackupRestore');
         elements.btnRestartExtension = document.getElementById('btnRestartExtension');
         elements.btnFactoryReset = document.getElementById('btnFactoryReset');
 
@@ -2826,6 +2876,7 @@
         applyRuntimeProviderGate();
         initViewSettings();
         initializeSettingsPanelControls();
+        initializeScriptSettingsWorkspace();
         initializeUtilitiesPanelControls();
         initializeHelpPanelControls();
         initializeTrashPanelControls();
@@ -5753,6 +5804,41 @@
         if (!elements.scriptConfigFields || !config?.readFields) return {};
         return config.readFields(elements.scriptConfigFields, getScriptConfigVariables(script));
     }
+
+    function setScriptSettingsSaveState(kind, message) {
+        if (!elements.scriptSettingsSaveStatus) return;
+        elements.scriptSettingsSaveStatus.dataset.state = kind;
+        elements.scriptSettingsSaveStatus.textContent = message;
+    }
+
+    function initializeScriptSettingsWorkspace() {
+        const panel = document.getElementById('scriptsettingsPanel');
+        if (!panel || panel.dataset.settingsWorkspaceReady === 'true') return;
+        panel.dataset.settingsWorkspaceReady = 'true';
+
+        panel.querySelector('.script-settings-anchor-nav')?.addEventListener('click', event => {
+            const button = event.target.closest('[data-script-settings-target]');
+            if (!button) return;
+            const target = document.getElementById(button.dataset.scriptSettingsTarget || '');
+            if (!target) return;
+            panel.querySelectorAll('.script-settings-anchor-nav button').forEach(item => {
+                item.classList.toggle('active', item === button);
+            });
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.focus({ preventScroll: true });
+        });
+
+        panel.addEventListener('input', event => {
+            if (event.target.closest('.script-settings-panel')) {
+                setScriptSettingsSaveState('dirty', tDashboard('scriptSettingsUnsaved', 'Unsaved changes'));
+            }
+        });
+        panel.addEventListener('change', event => {
+            if (event.target.closest('.script-settings-panel')) {
+                setScriptSettingsSaveState('dirty', tDashboard('scriptSettingsUnsaved', 'Unsaved changes'));
+            }
+        });
+    }
     
     function loadScriptSettings(script) {
         if (!script) return;
@@ -5800,6 +5886,7 @@
         
         // Update visual state based on checkbox states
         updateOriginalPatternsState();
+        setScriptSettingsSaveState('saved', tDashboard('saved', 'Saved'));
     }
     
     function renderOriginalPatterns(elementId, patterns) {
@@ -5926,6 +6013,7 @@
     async function saveScriptSettings() {
         if (!state.currentScriptId) return;
         const script = state.scripts.find(s => s.id === state.currentScriptId);
+        setScriptSettingsSaveState('saving', tDashboard('workflowSettingsSaving', 'Saving…'));
         
         const settings = {
             autoUpdate: elements.scriptAutoUpdate?.checked ?? true,
@@ -5953,8 +6041,10 @@
             // Update local state
             if (script) script.settings = { ...(script.settings || {}), ...settings };
 
+            setScriptSettingsSaveState('saved', tDashboard('saved', 'Saved'));
             showToast('Settings saved', 'success');
         } catch (e) {
+            setScriptSettingsSaveState('error', tDashboard('scriptSettingsSaveFailed', 'Save failed'));
             showToast('Failed to save settings', 'error');
         }
     }
@@ -6065,11 +6155,143 @@
         return Array.from(document.querySelectorAll('#settingsPanel #settingsSections .settings-section'));
     }
 
+    const SETTINGS_SECURITY_POLICY_GROUPS = Object.freeze([
+        Object.freeze({
+            id: 'securityRuntimeGroup',
+            group: 'runtime',
+            title: 'Runtime & sandbox',
+            titleKey: 'settingsSecurityRuntimeGroupTitle',
+            description: 'Choose how userscripts execute and which browser contexts are eligible.',
+            descriptionKey: 'settingsSecurityRuntimeGroupDescription',
+            controlIds: ['settingsContentScriptAPI', 'settingsSandboxMode', 'settingsDefaultTabTypes']
+        }),
+        Object.freeze({
+            id: 'securityPermissionsGroup',
+            group: 'permissions',
+            title: 'Page & network permissions',
+            titleKey: 'settingsSecurityPermissionsGroupTitle',
+            description: 'Control access to headers, files, cookies, pages, and privileged APIs.',
+            descriptionKey: 'settingsSecurityPermissionsGroupDescription',
+            controlIds: [
+                'settingsModifyCSP', 'settingsStatsUrlRetention', 'settingsAllowHttpHeaders',
+                'settingsAllowLocalFiles', 'settingsAllowCookies', 'settingsAllowHighPrivilegeScriptApis',
+                'settingsScopedHostPermissions', 'settingsOnDeviceAiEnabled', 'settingsAllowCommunication',
+                'settingsCheckConnect', 'settingsIncognitoStorage', 'settingsPageFilterMode',
+                'settingsWhitelistedPages', 'settingsBlacklistedPages', 'btnSaveSecurity'
+            ]
+        }),
+        Object.freeze({
+            id: 'securityIntegrityGroup',
+            group: 'integrity',
+            title: 'Integrity & policy',
+            titleKey: 'settingsSecurityIntegrityGroupTitle',
+            description: 'Validate dependencies and define how userscript metadata patterns are interpreted.',
+            descriptionKey: 'settingsSecurityIntegrityGroupDescription',
+            controlIds: ['settingsSRI', 'settingsIncludeMode']
+        })
+    ]);
+    const SETTINGS_SECURITY_IMPACTS = Object.freeze({
+        settingsModifyCSP: Object.freeze({ key: 'settingsSecurityModifyCspImpact', text: 'Controls whether userscripts may adjust a page\'s CSP headers.', tone: 'warning' }),
+        settingsAllowHttpHeaders: Object.freeze({ key: 'settingsSecurityHttpHeadersImpact', text: 'Allows scripts to modify HTTP request and response headers.', tone: 'warning' }),
+        settingsAllowLocalFiles: Object.freeze({ key: 'settingsSecurityLocalFilesImpact', text: 'Broad local-file access can expose sensitive data to installed scripts.', tone: 'warning' }),
+        settingsAllowCookies: Object.freeze({ key: 'settingsSecurityCookiesImpact', text: 'Broad cookie access can increase account risk for untrusted scripts.', tone: 'warning' }),
+        settingsAllowHighPrivilegeScriptApis: Object.freeze({ key: 'settingsSecurityPrivilegedApisImpact', text: 'Cross-scope APIs expand what a script may do outside its declared host context.', tone: 'warning' }),
+        settingsScopedHostPermissions: Object.freeze({ key: 'settingsSecurityScopedHostsImpact', text: 'Limit browser host requests to the origins each script declares.', tone: 'neutral' }),
+        settingsStatsUrlRetention: Object.freeze({ key: 'settingsSecurityUrlRetentionImpact', text: 'Origin-only or no-storage modes scrub previously stored URL detail.', tone: 'neutral' }),
+        settingsOnDeviceAiEnabled: Object.freeze({ key: 'settingsSecurityOnDeviceAiImpact', text: 'Uses Chrome\'s on-device Prompt API when the browser exposes it.', tone: 'neutral' })
+    });
+    const SETTINGS_SECURITY_SUPPLEMENTAL_SECTIONS = Object.freeze([
+        Object.freeze({ id: 'runtimeHostPermissionsSection', descriptionKey: 'settingsSecurityHostGroupDescription', description: 'Manage browser access to sites, local devices, and network resources.' }),
+        Object.freeze({ id: 'blackCheckSettingsSection', descriptionKey: 'settingsSecurityBlackCheckGroupDescription', description: 'Configure script reputation checks and block policies.' }),
+        Object.freeze({ id: 'downloadsSettingsSection', descriptionKey: 'settingsSecurityDownloadsGroupDescription', description: 'Control downloads that userscripts may initiate or handle.' }),
+        Object.freeze({ id: 'experimentalSettingsSection', descriptionKey: 'settingsSecurityExperimentalGroupDescription', description: 'Review advanced safeguards before enabling experimental behavior.' })
+    ]);
+
+    function organizeSupplementalSecuritySections() {
+        SETTINGS_SECURITY_SUPPLEMENTAL_SECTIONS.forEach(definition => {
+            const section = document.getElementById(definition.id);
+            const label = section?.querySelector(':scope > .section-label');
+            const content = section?.querySelector(':scope > .section-content');
+            if (!section || !label || !content || section.querySelector(':scope > .settings-security-disclosure')) return;
+
+            const disclosure = document.createElement('details');
+            disclosure.className = 'settings-security-disclosure';
+            const summary = document.createElement('summary');
+            const description = document.createElement('small');
+            description.textContent = tDashboard(definition.descriptionKey, definition.description);
+            label.classList.add('settings-security-disclosure-title');
+            summary.append(label, description);
+            disclosure.append(summary, content);
+            section.appendChild(disclosure);
+        });
+    }
+
+    function organizeSecuritySettingsSection() {
+        const section = document.getElementById('securitySettingsSection');
+        const content = section?.querySelector(':scope > .section-content');
+        if (!content || content.querySelector('.settings-policy-grid')) return;
+
+        const rows = Array.from(content.querySelectorAll(':scope > .setting-row'));
+        const rowByControlId = new Map();
+        rows.forEach(row => {
+            row.querySelectorAll('[id]').forEach(control => rowByControlId.set(control.id, row));
+        });
+
+        Object.entries(SETTINGS_SECURITY_IMPACTS).forEach(([controlId, impact]) => {
+            const row = rowByControlId.get(controlId);
+            if (!row || row.querySelector('.setting-impact')) return;
+            const explanation = document.createElement('span');
+            explanation.className = 'setting-impact';
+            explanation.dataset.tone = impact.tone;
+            explanation.textContent = tDashboard(impact.key, impact.text);
+            row.appendChild(explanation);
+        });
+
+        const grid = document.createElement('div');
+        grid.className = 'settings-policy-grid';
+        SETTINGS_SECURITY_POLICY_GROUPS.forEach((definition, index) => {
+            const card = document.createElement('details');
+            card.className = 'settings-policy-card';
+            card.id = definition.id;
+            card.dataset.policyGroup = definition.group;
+            card.tabIndex = -1;
+            card.open = index === 0;
+
+            const header = document.createElement('summary');
+            header.className = 'settings-policy-card-head';
+            const heading = document.createElement('h3');
+            heading.textContent = tDashboard(definition.titleKey, definition.title);
+            const description = document.createElement('p');
+            description.textContent = tDashboard(definition.descriptionKey, definition.description);
+            header.append(heading, description);
+
+            const body = document.createElement('div');
+            body.className = 'settings-policy-card-body';
+            const seen = new Set();
+            definition.controlIds.forEach(controlId => {
+                const row = rowByControlId.get(controlId);
+                if (row && !seen.has(row)) {
+                    seen.add(row);
+                    body.appendChild(row);
+                }
+            });
+            card.append(header, body);
+            grid.appendChild(card);
+        });
+
+        rows.filter(row => row.isConnected).forEach(row => {
+            grid.querySelector('[data-policy-group="permissions"] .settings-policy-card-body')?.appendChild(row);
+        });
+        content.appendChild(grid);
+        organizeSupplementalSecuritySections();
+    }
+
     function initializeSettingsPanelControls() {
         const sections = getSettingsPanelSections();
         if (sections.length === 0) return;
 
         enhanceSettingsPanelSemantics(sections);
+        organizeSecuritySettingsSection();
 
         sections.forEach(section => {
             if (!section.dataset.settingsGroup) {
@@ -6089,6 +6311,18 @@
         });
 
         elements.settingsQuickFilter?.addEventListener('input', () => applySettingsPanelFilters());
+        elements.settingsSecurityAnchors?.addEventListener('click', event => {
+            const button = event.target.closest('[data-settings-target]');
+            if (!button) return;
+            const target = document.getElementById(button.dataset.settingsTarget || '');
+            if (!target) return;
+            const disclosure = target instanceof HTMLDetailsElement
+                ? target
+                : target.querySelector(':scope > .settings-security-disclosure');
+            if (disclosure instanceof HTMLDetailsElement) disclosure.open = true;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.focus({ preventScroll: true });
+        });
         applySettingsPanelFilters();
         syncSettingsSectionErrorStates(sections);
     }
@@ -6099,6 +6333,7 @@
 
         const mode = state.settings.configMode || 'advanced';
         const query = normalizeSettingsLabel(elements.settingsQuickFilter?.value || '');
+        const effectiveFilter = query ? 'all' : state.settingsPanelFilter;
         let visibleCount = 0;
         let visibleAdvancedCount = 0;
         let totalAdvancedCount = 0;
@@ -6107,7 +6342,7 @@
             const isAdvanced = section.dataset.configLevel === 'advanced';
             const group = section.dataset.settingsGroup || 'core';
             const matchesMode = !isAdvanced || mode === 'advanced';
-            const matchesGroup = state.settingsPanelFilter === 'all' || group === state.settingsPanelFilter;
+            const matchesGroup = effectiveFilter === 'all' || group === effectiveFilter;
             const matchesQuery = !query || (section.dataset.settingsSearch || '').includes(query);
             const shouldShow = matchesMode && matchesGroup && matchesQuery;
 
@@ -6118,12 +6353,30 @@
             }
 
             section.hidden = !shouldShow;
+            if (query && shouldShow) {
+                section.querySelectorAll('details').forEach(disclosure => {
+                    disclosure.open = true;
+                });
+            }
         });
 
         syncPressedButtons(
             elements.settingsFilterButtons,
             button => (button.dataset.settingsFilter || 'all') === state.settingsPanelFilter
         );
+
+        const categoryCopy = SETTINGS_CATEGORY_COPY[state.settingsPanelFilter] || SETTINGS_CATEGORY_COPY.all;
+        const settingsPanel = document.getElementById('settingsPanel');
+        if (settingsPanel) settingsPanel.dataset.settingsCategory = state.settingsPanelFilter;
+        if (elements.settingsCategoryTitle) {
+            elements.settingsCategoryTitle.textContent = tDashboard(categoryCopy.titleKey, categoryCopy.title);
+        }
+        if (elements.settingsCategoryDescription) {
+            elements.settingsCategoryDescription.textContent = tDashboard(categoryCopy.descriptionKey, categoryCopy.description);
+        }
+        if (elements.settingsSecurityAnchors) {
+            elements.settingsSecurityAnchors.hidden = state.settingsPanelFilter !== 'security' || !!query;
+        }
 
         const modeLabel = mode === 'advanced'
             ? tDashboard('settingsModeAdvanced', 'Advanced')
@@ -18898,6 +19151,13 @@
         });
 
         // Reset buttons
+        elements.btnOpenBackupRestore?.addEventListener('click', async () => {
+            await switchTab('utilities');
+            const backupFilter = document.querySelector('[data-utilities-filter="backup"]');
+            backupFilter?.click();
+            document.getElementById('utilitiesSections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            backupFilter?.focus({ preventScroll: true });
+        });
         elements.btnRestartExtension?.addEventListener('click', async event => {
             await runButtonTask(event.currentTarget, async () => {
                 if (!await showConfirmModal('Restart ScriptVault?', 'Restart the extension now? Open editor tabs will close.', { confirmLabel: 'Restart' })) return;

@@ -1002,6 +1002,37 @@ const I18n = (() => {
       "settingsFilterAutomation": "Automation",
       "settingsFilterSecurity": "Security",
       "settingsFilterRecovery": "Recovery",
+      "settingsCategories": "Categories",
+      "settingsAllDescription": "Search and review every ScriptVault preference in one workspace.",
+      "settingsCoreDescription": "Configure ScriptVault's core behavior, diagnostics, and recovery defaults.",
+      "settingsWorkspaceDescription": "Customize the interface, editor, menus, tags, and theme.",
+      "settingsAutomationDescription": "Control updates, external resources, discovery, and secure cross-device sync.",
+      "settingsSecurityDescription": "Review runtime policy, permissions, integrity, host access, and experimental safeguards.",
+      "settingsRecoveryDescription": "Protect the vault, restart ScriptVault safely, or reset everything with confirmation.",
+      "settingsAutosaveMost": "Most controls autosave",
+      "settingsSecurityRuntime": "Runtime",
+      "settingsSecurityPermissions": "Permissions",
+      "settingsSecurityTrust": "Trust",
+      "settingsSecurityHostAccess": "Host access",
+      "settingsSecurityRuntimeGroupTitle": "Runtime & sandbox",
+      "settingsSecurityRuntimeGroupDescription": "Choose how userscripts execute and which browser contexts are eligible.",
+      "settingsSecurityPermissionsGroupTitle": "Page & network permissions",
+      "settingsSecurityPermissionsGroupDescription": "Control access to headers, files, cookies, pages, and privileged APIs.",
+      "settingsSecurityIntegrityGroupTitle": "Integrity & policy",
+      "settingsSecurityIntegrityGroupDescription": "Validate dependencies and define how userscript metadata patterns are interpreted.",
+      "settingsSecurityHostGroupDescription": "Manage browser access to sites, local devices, and network resources.",
+      "settingsSecurityBlackCheckGroupDescription": "Configure script reputation checks and block policies.",
+      "settingsSecurityDownloadsGroupDescription": "Control downloads that userscripts may initiate or handle.",
+      "settingsSecurityExperimentalGroupDescription": "Review advanced safeguards before enabling experimental behavior.",
+      "settingsSecurityModifyCspImpact": "Controls whether userscripts may adjust a page's CSP headers.",
+      "settingsSecurityHttpHeadersImpact": "Allows scripts to modify HTTP request and response headers.",
+      "settingsSecurityLocalFilesImpact": "Broad local-file access can expose sensitive data to installed scripts.",
+      "settingsSecurityCookiesImpact": "Broad cookie access can increase account risk for untrusted scripts.",
+      "settingsSecurityPrivilegedApisImpact": "Cross-scope APIs expand what a script may do outside its declared host context.",
+      "settingsSecurityScopedHostsImpact": "Limit browser host requests to the origins each script declares.",
+      "settingsSecurityUrlRetentionImpact": "Origin-only or no-storage modes scrub previously stored URL detail.",
+      "settingsSecurityOnDeviceAiImpact": "Uses Chrome's on-device Prompt API when the browser exposes it.",
+      "settingsDownloads": "Downloads",
       "settingsFilterAllSections": "all sections",
       "settingsFilterCoreSettings": "core settings",
       "settingsFilterWorkspaceSettings": "workspace settings",
@@ -1018,6 +1049,28 @@ const I18n = (() => {
       "settingsAdvancedHiddenCount": "{total} hidden",
       "settingsShowingResults": 'Showing {count} result{plural} for "{query}".',
       "settingsShowingFilterMode": "Showing {filter} in {mode} mode.",
+      "settingsApplyCustomCss": "Apply custom CSS",
+      "settingsExplicitApplyNote": "This editor uses an explicit apply action.",
+      "settingsCustomizeTheme": "Customize theme",
+      "settingsCustomizeThemeDescription": "Edit interface color tokens and preview the result.",
+      "settingsApplyBadgeColor": "Apply badge color",
+      "settingsSaveSyncConfiguration": "Save sync configuration",
+      "settingsApplyLinterConfig": "Apply linter config",
+      "settingsApplyPageAccessRules": "Apply page access rules",
+      "settingsApplyBlacklist": "Apply blacklist",
+      "settingsApplyDownloadAllowlist": "Apply download allowlist",
+      "settingsRecoveryActions": "Recovery Actions",
+      "settingsProtectVaultFirst": "Protect your vault first",
+      "settingsProtectVaultDescription": "Backups and exports live in Utilities. Export the vault or restore an existing archive before a destructive change.",
+      "settingsOpenBackupRestore": "Open backup & restore",
+      "settingsRestartDescription": "Restart the extension without deleting scripts, settings, stored values, or backups.",
+      "settingsDangerZone": "Danger zone",
+      "settingsFactoryResetDescription": "Factory Reset deletes every script and restores all settings to their defaults. A confirmation dialog appears before deletion, but the reset cannot be undone.",
+      "settingsRecoverySafeNote": "An ordinary restart keeps local vault data intact. Exported and managed backups remain available through Utilities.",
+      "saved": "Saved",
+      "scriptSettingsGroupNavigation": "Per-script setting groups",
+      "scriptSettingsUnsaved": "Unsaved changes",
+      "scriptSettingsSaveFailed": "Save failed",
       "settingsConfigModeLabel": "Config mode:",
       "settingsConfigModeHelp": "Beginner mode hides advanced options",
       "settingsAutoReloadPages": "Auto reload pages",
@@ -2527,15 +2580,15 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 43,
       "translatedRuntimeMessages": 43,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "en": {
       "name": "English",
       "direction": "ltr",
       "translationStatus": "complete",
-      "runtimeCoverageBaseline": 2001,
-      "translatedRuntimeMessages": 2001,
-      "totalRuntimeMessages": 2001
+      "runtimeCoverageBaseline": 2054,
+      "translatedRuntimeMessages": 2054,
+      "totalRuntimeMessages": 2054
     },
     "es": {
       "name": "Espa\xF1ol",
@@ -2543,7 +2596,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 45,
       "translatedRuntimeMessages": 45,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "fr": {
       "name": "Fran\xE7ais",
@@ -2551,7 +2604,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 43,
       "translatedRuntimeMessages": 43,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "he": {
       "name": "\u05E2\u05D1\u05E8\u05D9\u05EA",
@@ -2559,7 +2612,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 58,
       "translatedRuntimeMessages": 58,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "ja": {
       "name": "\u65E5\u672C\u8A9E",
@@ -2567,7 +2620,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 71,
       "translatedRuntimeMessages": 71,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "pt": {
       "name": "Portugu\xEAs",
@@ -2575,7 +2628,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 42,
       "translatedRuntimeMessages": 42,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "ru": {
       "name": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
@@ -2583,7 +2636,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 117,
       "translatedRuntimeMessages": 117,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     },
     "zh": {
       "name": "\u4E2D\u6587",
@@ -2591,7 +2644,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 46,
       "translatedRuntimeMessages": 46,
-      "totalRuntimeMessages": 2001
+      "totalRuntimeMessages": 2054
     }
   };
 

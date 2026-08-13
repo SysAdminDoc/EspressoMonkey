@@ -62,15 +62,17 @@ export const REVIEWED_WARNING_FILES = new Set([
   'pages/sidepanel.js',
 ]);
 
-// 54 = 53 + one UNSUPPORTED_API probe for userScripts.configureWorld({ worldId }).
-// web-ext's compat data predates Firefox 153, which does implement per-script
-// worlds; the probe is a guarded typeof check with a documented fallback.
+// web-ext 10.6.0 currently reports 59 reviewed warnings: 25 dynamic-fragment
+// assignments, 20 unsupported capability probes, 10 Firefox 140 / Android
+// compatibility findings for userScripts.execute, two generated-code evals,
+// one sandbox inline bootstrap, and one Android minimum-version manifest key.
 //
-// 58 = 54 + four INCOMPATIBLE_API / ANDROID_INCOMPATIBLE_API pairs for
-// userScripts.execute, which v3.24.0's on-demand execution isolation introduced
-// without re-running this gate. The calls are guarded (see INCOMPATIBLE_API
-// rationale) and the drift is recorded here rather than left silently red.
-export const WARNING_BUDGET = 58;
+// The previous ceiling of 58 predated v3.28.0's guarded dashboard
+// userScripts.execute capability probe. That probe added one desktop/Android
+// compatibility pair while another warning left the inventory, for a net
+// increase of one. Keep the exact reviewed inventory explicit so any further
+// warning growth still fails closed.
+export const WARNING_BUDGET = 59;
 
 export function summarizeFirefoxLintReport(report) {
   const warnings = Array.isArray(report?.warnings) ? report.warnings : [];

@@ -8023,8 +8023,8 @@
             <div class="settings-hero">
                 <div class="settings-hero-copy">
                     <div class="settings-eyebrow" data-i18n="settingsPreferences">Preferences</div>
-                    <h2 data-i18n="tabSettings">Settings</h2>
-                    <p data-i18n="settingsHeroDescription">Autosaved controls for ScriptVault itself. Filter the workspace to focus on interface, automation, security, or recovery without losing the advanced depth underneath.</p>
+                    <h2 id="settingsCategoryTitle" data-i18n="settingsFilterCore">Core</h2>
+                    <p id="settingsCategoryDescription" data-i18n="settingsCoreDescription">Configure ScriptVault's core behavior, diagnostics, and recovery defaults.</p>
                 </div>
                 <div class="settings-overview">
                     <div class="settings-summary">
@@ -8040,7 +8040,7 @@
                         <strong id="settingsAdvancedSummary" data-i18n="settingsAdvancedInitial">0 shown</strong>
                     </div>
                     <div class="settings-summary settings-save-summary" data-state="saved">
-                        <span class="settings-summary-label">Autosave</span>
+                        <span class="settings-summary-label" data-i18n="settingsAutosaveMost">Most controls autosave</span>
                         <strong id="settingsSaveStatus" role="status" aria-live="polite" aria-atomic="true">Saved</strong>
                     </div>
                 </div>
@@ -8050,15 +8050,25 @@
                     <span class="settings-search-icon">⌕</span>
                     <input type="search" class="settings-search-input" id="settingsQuickFilter" name="settings_search" placeholder="Search settings, sync, editor, CSP..." data-i18n-placeholder="settingsSearchPlaceholder" autocomplete="off" spellcheck="false">
                 </label>
-                <div class="settings-filter-row" id="settingsCategoryFilters" role="group" aria-label="Settings category filters" data-i18n-aria-label="settingsCategoryFilters">
-                    <button type="button" class="settings-filter active" data-settings-filter="all" data-i18n="settingsFilterAll">All</button>
-                    <button type="button" class="settings-filter" data-settings-filter="core" data-i18n="settingsFilterCore">Core</button>
-                    <button type="button" class="settings-filter" data-settings-filter="workspace" data-i18n="settingsFilterWorkspace">Workspace</button>
-                    <button type="button" class="settings-filter" data-settings-filter="automation" data-i18n="settingsFilterAutomation">Automation</button>
-                    <button type="button" class="settings-filter" data-settings-filter="security" data-i18n="settingsFilterSecurity">Security</button>
-                    <button type="button" class="settings-filter" data-settings-filter="recovery" data-i18n="settingsFilterRecovery">Recovery</button>
-                </div>
             </div>
+            <div class="settings-filter-row" id="settingsCategoryFilters" role="group" aria-label="Settings category filters" data-i18n-aria-label="settingsCategoryFilters">
+                <span class="settings-filter-heading" data-i18n="settingsCategories">Categories</span>
+                <button type="button" class="settings-filter" data-settings-filter="all" data-i18n="settingsFilterAll">All settings</button>
+                <button type="button" class="settings-filter active" data-settings-filter="core" data-i18n="settingsFilterCore">Core</button>
+                <button type="button" class="settings-filter" data-settings-filter="workspace" data-i18n="settingsFilterWorkspace">Workspace</button>
+                <button type="button" class="settings-filter" data-settings-filter="automation" data-i18n="settingsFilterAutomation">Automation</button>
+                <button type="button" class="settings-filter" data-settings-filter="security" data-i18n="settingsFilterSecurity">Security</button>
+                <button type="button" class="settings-filter" data-settings-filter="recovery" data-i18n="settingsFilterRecovery">Recovery</button>
+            </div>
+            <nav class="settings-section-anchors" id="settingsSecurityAnchors" aria-label="Security setting groups" hidden>
+                <button type="button" data-settings-target="securityRuntimeGroup" data-i18n="settingsSecurityRuntime">Runtime</button>
+                <button type="button" data-settings-target="securityPermissionsGroup" data-i18n="settingsSecurityPermissions">Permissions</button>
+                <button type="button" data-settings-target="securityIntegrityGroup" data-i18n="settingsSecurityTrust">Trust</button>
+                <button type="button" data-settings-target="runtimeHostPermissionsSection" data-i18n="settingsSecurityHostAccess">Host access</button>
+                <button type="button" data-settings-target="blackCheckSettingsSection">BlackCheck</button>
+                <button type="button" data-settings-target="downloadsSettingsSection" data-i18n="settingsDownloads">Downloads</button>
+                <button type="button" data-settings-target="experimentalSettingsSection" data-i18n="settingsExperimental">Experimental</button>
+            </nav>
             <div class="settings-filter-status" id="settingsFilterStatus" data-i18n="settingsShowingAllSections">Showing all sections</div>
             <div class="settings-sections" id="settingsSections">
             <!-- General Section -->
@@ -8148,7 +8158,8 @@
                         </select>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveAppearance" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveAppearance" data-i18n="settingsApplyCustomCss">Apply custom CSS</button>
+                        <span class="settings-explicit-note" data-i18n="settingsExplicitApplyNote">This editor uses an explicit apply action.</span>
                     </div>
                 </div>
             </div>
@@ -8156,7 +8167,13 @@
             <div class="settings-section">
                 <div class="section-label" data-i18n="settingsThemeEditor">Theme Editor</div>
                 <div class="section-content">
-                    <div id="themeEditorContainer" class="utility-surface dashboard-module-surface"></div>
+                    <details class="settings-disclosure settings-theme-disclosure">
+                        <summary>
+                            <span data-i18n="settingsCustomizeTheme">Customize theme</span>
+                            <small data-i18n="settingsCustomizeThemeDescription">Edit interface color tokens and preview the result.</small>
+                        </summary>
+                        <div id="themeEditorContainer" class="utility-surface dashboard-module-surface"></div>
+                    </details>
                 </div>
             </div>
 
@@ -8212,7 +8229,7 @@
                         <span class="setting-error" id="settingsBadgeColorError" hidden></span>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveActionMenu" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveActionMenu" data-i18n="settingsApplyBadgeColor">Apply badge color</button>
                     </div>
                 </div>
             </div>
@@ -8471,7 +8488,7 @@
                         <textarea class="textarea-field" id="syncLog" aria-label="Recent sync log" readonly style="min-height: 80px; font-family: monospace; font-size: 0.6875rem;"></textarea>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveSync" data-i18n="syncSaveProviderSettings">Save Provider Settings</button>
+                        <button type="button" class="btn" id="btnSaveSync" data-i18n="settingsSaveSyncConfiguration">Save sync configuration</button>
                     </div>
                 </div>
             </div>
@@ -8598,7 +8615,7 @@
                         <span class="setting-error" id="settingsLinterConfigError" hidden></span>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveEditor" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveEditor" data-i18n="settingsApplyLinterConfig">Apply linter config</button>
                     </div>
                 </div>
             </div>
@@ -8772,7 +8789,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                         <span class="setting-error" id="settingsBlacklistedPagesError" hidden></span>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveSecurity" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveSecurity" data-i18n="settingsApplyPageAccessRules">Apply page access rules</button>
                     </div>
                 </div>
             </div>
@@ -8797,7 +8814,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- BlackCheck Section -->
-            <div class="settings-section" data-config-level="advanced">
+            <div class="settings-section" id="blackCheckSettingsSection" data-config-level="advanced">
                 <div class="section-label" data-i18n="settingsBlackCheck">BlackCheck</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8829,13 +8846,13 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                         <span class="setting-error" id="settingsManualBlacklistError" hidden></span>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveBlackCheck" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveBlackCheck" data-i18n="settingsApplyBlacklist">Apply blacklist</button>
                     </div>
                 </div>
             </div>
 
             <!-- Downloads BETA Section -->
-            <div class="settings-section" data-config-level="advanced">
+            <div class="settings-section" id="downloadsSettingsSection" data-config-level="advanced">
                 <div class="section-label" data-i18n="settingsDownloadsBeta">Downloads BETA</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8873,13 +8890,13 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                         <span class="setting-error" id="settingsDownloadWhitelistError" hidden></span>
                     </div>
                     <div class="setting-row">
-                        <button type="button" class="btn" id="btnSaveDownloads" data-i18n="save">Save</button>
+                        <button type="button" class="btn" id="btnSaveDownloads" data-i18n="settingsApplyDownloadAllowlist">Apply download allowlist</button>
                     </div>
                 </div>
             </div>
 
             <!-- Experimental Section -->
-            <div class="settings-section" data-config-level="advanced">
+            <div class="settings-section" id="experimentalSettingsSection" data-config-level="advanced">
                 <div class="section-label" data-i18n="settingsExperimental">Experimental</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8904,15 +8921,31 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- Reset Section -->
-            <div class="settings-section">
-                <div class="section-label" data-i18n="settingsReset">Reset</div>
+            <div class="settings-section settings-recovery-section" id="recoveryActionsSection">
+                <div class="section-label" data-i18n="settingsRecoveryActions">Recovery Actions</div>
                 <div class="section-content">
-                    <div class="setting-row">
+                    <div class="settings-recovery-card settings-recovery-protect">
+                        <div>
+                            <strong data-i18n="settingsProtectVaultFirst">Protect your vault first</strong>
+                            <p data-i18n="settingsProtectVaultDescription">Backups and exports live in Utilities. Export the vault or restore an existing archive before a destructive change.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnOpenBackupRestore" data-i18n="settingsOpenBackupRestore">Open backup &amp; restore</button>
+                    </div>
+                    <div class="settings-recovery-card">
+                        <div>
+                            <strong data-i18n="restartScriptVault">Restart ScriptVault</strong>
+                            <p data-i18n="settingsRestartDescription">Restart the extension without deleting scripts, settings, stored values, or backups.</p>
+                        </div>
                         <button type="button" class="btn" id="btnRestartExtension" data-i18n="restartScriptVault">Restart ScriptVault</button>
                     </div>
-                    <div class="setting-row">
+                    <div class="settings-recovery-card settings-danger-zone">
+                        <div>
+                            <strong data-i18n="settingsDangerZone">Danger zone</strong>
+                            <p data-i18n="settingsFactoryResetDescription">Factory Reset deletes every script and restores all settings to their defaults. A confirmation dialog appears before deletion, but the reset cannot be undone.</p>
+                        </div>
                         <button type="button" class="btn btn-danger" id="btnFactoryReset" data-i18n="factoryReset">Factory Reset</button>
                     </div>
+                    <p class="settings-recovery-note" data-i18n="settingsRecoverySafeNote">An ordinary restart keeps local vault data intact. Exported and managed backups remain available through Utilities.</p>
                 </div>
             </div>
             </div>
@@ -10178,10 +10211,22 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                                 <h3 data-i18n="perScriptSettingsTitle">Per-Script Settings</h3>
                                 <p data-i18n="perScriptSettingsDescription">Override updates, execution behavior, sync protection, and URL matching without touching the source code.</p>
                             </div>
+                            <div class="editor-panel-actions script-settings-actions">
+                                <span class="script-settings-save-status" id="scriptSettingsSaveStatus" data-state="saved" role="status" aria-live="polite" aria-atomic="true" data-i18n="saved">Saved</span>
+                                <button type="button" class="btn btn-primary" id="btnSaveScriptSettings" data-i18n="saveSettings">Save Settings</button>
+                                <button type="button" class="btn" id="btnResetScriptSettings" data-i18n="resetToDefaults">Reset to Defaults</button>
+                            </div>
                         </div>
                         <div class="editor-panel-scroll">
                             <div class="script-settings-panel">
-                                <div class="settings-section">
+                                <nav class="script-settings-anchor-nav" aria-label="Per-script setting groups" data-i18n-aria-label="scriptSettingsGroupNavigation">
+                                    <button type="button" class="active" data-script-settings-target="scriptSettingsGeneral" data-i18n="settingsGeneral">General</button>
+                                    <button type="button" data-script-settings-target="scriptSettingsExecution" data-i18n="scriptSettingsExecutionSection">Execution</button>
+                                    <button type="button" data-script-settings-target="scriptSettingsUrlOverrides" data-i18n="urlOverridesSection">URL Overrides</button>
+                                    <button type="button" data-script-settings-target="scriptSettingsConfiguration" data-i18n="scriptConfigurationSection">Configuration</button>
+                                    <button type="button" data-script-settings-target="scriptSettingsNotes" data-i18n="scriptNotesSection">Notes</button>
+                                </nav>
+                                <div class="settings-section" id="scriptSettingsGeneral" tabindex="-1">
                             <!-- Phase 38.8 — Singular "Update" matches VM v2.37.1 + TM split tabs convention. -->
                             <div class="section-label" data-i18n="scriptSettingsUpdateSection">Update</div>
                             <div class="section-content">
@@ -10194,7 +10239,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                             </div>
                         </div>
 
-                                <div class="settings-section">
+                                <div class="settings-section" id="scriptSettingsSync" tabindex="-1">
                             <div class="section-label" data-i18n="scriptSettingsSyncSection">Sync</div>
                             <div class="section-content">
                                 <div class="setting-row">
@@ -10206,7 +10251,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                             </div>
                         </div>
                         
-                                <div class="settings-section">
+                                <div class="settings-section" id="scriptSettingsExecution" tabindex="-1">
                             <div class="section-label" data-i18n="scriptSettingsExecutionSection">Execution</div>
                             <div class="section-content">
                                 <div class="setting-row">
@@ -10237,7 +10282,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                             </div>
                         </div>
 
-                                <div class="settings-section">
+                                <div class="settings-section" id="scriptSettingsNotifications" tabindex="-1">
                             <div class="section-label" data-i18n="scriptNotificationsSection">Notifications</div>
                             <div class="section-content">
                                 <div class="setting-row">
@@ -10246,14 +10291,14 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                             </div>
                         </div>
 
-                                <div class="settings-section">
+                                <div class="settings-section" id="scriptSettingsConfiguration" tabindex="-1">
                             <div class="section-label" data-i18n="scriptConfigurationSection">Configuration</div>
                             <div class="section-content">
                                 <div class="script-config-fields" id="scriptConfigFields"></div>
                             </div>
                         </div>
 
-                                <div class="settings-section">
+                                <div class="settings-section" id="scriptSettingsNotes" tabindex="-1">
                             <div class="section-label" data-i18n="scriptNotesSection">Notes</div>
                             <div class="section-content">
                                 <div class="setting-row">
@@ -10263,7 +10308,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                         </div>
 
                         <!-- URL Overrides - Tampermonkey-style -->
-                                <div class="settings-section url-overrides-section">
+                                <div class="settings-section url-overrides-section" id="scriptSettingsUrlOverrides" tabindex="-1">
                             <div class="section-label" data-i18n="urlOverridesSection">URL Overrides</div>
                             <div class="section-content">
                                 <p class="editor-panel-note">
@@ -10370,10 +10415,6 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                             </div>
                         </div>
                         
-                                <div class="btn-group editor-panel-footer">
-                            <button type="button" class="btn btn-primary" id="btnSaveScriptSettings" data-i18n="saveSettings">Save Settings</button>
-                            <button type="button" class="btn" id="btnResetScriptSettings" data-i18n="resetToDefaults">Reset to Defaults</button>
-                                </div>
                             </div>
                         </div>
                     </div>

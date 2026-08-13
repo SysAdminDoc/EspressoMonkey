@@ -16,6 +16,576 @@
   --header-height: 0px;
 }
 
+/* Settings workspace: category rail, honest persistence cues, and grouped
+   high-risk controls. This final layer intentionally overrides the earlier
+   shared panel-density rules while preserving the same design tokens. */
+#settingsPanel .settings-shell {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  grid-template-areas:
+    "search search"
+    "nav hero"
+    "nav anchors"
+    "nav status"
+    "nav sections"
+    "nav empty";
+  gap: 0 14px;
+}
+
+#settingsPanel .settings-shell > .settings-toolbar {
+  grid-area: search;
+  grid-template-columns: minmax(260px, 430px);
+  margin-bottom: 10px;
+  padding: 4px;
+}
+
+#settingsPanel .settings-search {
+  width: 100%;
+}
+
+#settingsPanel #settingsCategoryFilters {
+  grid-area: nav;
+  position: sticky;
+  top: 106px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface-sunken);
+}
+
+#settingsPanel .settings-filter-heading {
+  padding: 3px 9px 7px;
+  color: var(--sv-text-dim);
+  font-size: 0.625rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--sv-text-soft);
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-align: start;
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter:hover {
+  border-color: var(--sv-border-subtle);
+  background: var(--sv-overlay-subtle);
+  color: var(--sv-text);
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter[aria-pressed="true"] {
+  border-color: var(--sv-accent-border);
+  background: color-mix(in srgb, var(--sv-accent) 13%, var(--sv-surface));
+  color: var(--sv-accent-2);
+  box-shadow: inset 2px 0 0 var(--sv-accent);
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter[aria-pressed="false"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--sv-text-soft);
+  box-shadow: none;
+}
+
+#settingsPanel[data-settings-category="recovery"] .settings-save-summary {
+  display: none;
+}
+
+#settingsPanel .settings-hero {
+  grid-area: hero;
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 72px;
+  padding: 8px 2px 14px;
+  border-bottom: 1px solid var(--sv-border-subtle);
+}
+
+#settingsPanel .settings-hero-copy {
+  display: block !important;
+}
+
+#settingsPanel .settings-eyebrow {
+  display: none;
+}
+
+#settingsPanel .settings-hero-copy h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+#settingsPanel .settings-hero-copy p {
+  max-width: 46rem;
+  margin: 6px 0 0;
+  color: var(--sv-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+#settingsPanel .settings-overview {
+  display: block;
+  flex: 0 0 auto;
+}
+
+#settingsPanel .settings-summary:not(.settings-save-summary) {
+  display: none;
+}
+
+#settingsPanel .settings-save-summary {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  min-width: 150px;
+  padding: 4px 0;
+  border: 0;
+}
+
+#settingsPanel .settings-save-summary .settings-summary-label {
+  order: 2;
+  font-size: 0.625rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#settingsPanel .settings-save-summary strong {
+  font-size: 0.75rem;
+}
+
+#settingsPanel .settings-section-anchors {
+  grid-area: anchors;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 7px 0 5px;
+  border-bottom: 1px solid var(--sv-border-subtle);
+  scrollbar-width: thin;
+}
+
+#settingsPanel .settings-section-anchors[hidden] {
+  display: none !important;
+}
+
+#settingsPanel .settings-section-anchors button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--sv-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+
+#settingsPanel .settings-section-anchors button:hover,
+#settingsPanel .settings-section-anchors button:focus-visible {
+  color: var(--sv-text);
+}
+
+#settingsPanel .settings-section-anchors button:first-child {
+  border-bottom-color: var(--sv-accent);
+  color: var(--sv-accent-2);
+}
+
+#settingsPanel .settings-filter-status {
+  grid-area: status;
+  margin: 7px 2px;
+}
+
+#settingsPanel #settingsSections {
+  grid-area: sections;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#settingsPanel #settingsEmptyState {
+  grid-area: empty;
+}
+
+#settingsPanel #settingsSections > .settings-section {
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface);
+}
+
+#settingsPanel #settingsSections > :is(
+  [data-settings-group="core"],
+  [data-settings-group="recovery"],
+  [data-settings-label="userscript sync"],
+  [data-settings-label="editor"],
+  #securitySettingsSection,
+  #runtimeHostPermissionsSection
+) {
+  grid-column: 1 / -1;
+}
+
+#settingsPanel #settingsSections > .settings-section > .section-label {
+  min-height: 36px;
+  padding: 9px 11px;
+  background: var(--sv-surface-sunken);
+  font-size: 0.75rem;
+}
+
+#settingsPanel #settingsSections > .settings-section > .section-content {
+  padding: 7px 11px 9px;
+}
+
+#settingsPanel .settings-explicit-note {
+  color: var(--sv-text-dim);
+  font-size: 0.6875rem;
+}
+
+#settingsPanel .settings-disclosure {
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 6px;
+  background: var(--sv-surface-sunken);
+}
+
+#settingsPanel .settings-disclosure > summary {
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px;
+  color: var(--sv-text);
+  font-size: 0.75rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+#settingsPanel .settings-disclosure > summary small {
+  color: var(--sv-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 450;
+}
+
+#settingsPanel .settings-theme-disclosure[open] > summary {
+  border-bottom: 1px solid var(--sv-border-subtle);
+}
+
+#settingsPanel .settings-theme-disclosure #themeEditorContainer {
+  max-height: min(56vh, 520px);
+  overflow: auto;
+  border: 0;
+}
+
+#settingsPanel .settings-section:has(#themeEditorContainer) > .section-content {
+  max-height: none;
+  overflow: visible;
+}
+
+#settingsPanel .settings-policy-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+#settingsPanel .settings-policy-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 6px;
+  background: var(--sv-surface-sunken);
+}
+
+#settingsPanel .settings-policy-card-head {
+  display: grid;
+  position: relative;
+  gap: 3px;
+  padding: 10px 12px;
+  padding-inline-end: 34px;
+  list-style: none;
+  cursor: pointer;
+}
+
+#settingsPanel .settings-policy-card-head::-webkit-details-marker,
+#settingsPanel .settings-security-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+#settingsPanel .settings-policy-card-head::after,
+#settingsPanel .settings-security-disclosure > summary::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-inline-end: 1px solid currentColor;
+  border-block-end: 1px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+#settingsPanel .settings-policy-card[open] > .settings-policy-card-head,
+#settingsPanel .settings-security-disclosure[open] > summary {
+  border-bottom: 1px solid var(--sv-border-subtle);
+}
+
+#settingsPanel .settings-policy-card[open] > .settings-policy-card-head::after,
+#settingsPanel .settings-security-disclosure[open] > summary::after {
+  transform: translateY(-35%) rotate(225deg);
+}
+
+#settingsPanel .settings-policy-card-head h3 {
+  margin: 0;
+  color: var(--sv-text);
+  font-size: 0.75rem;
+}
+
+#settingsPanel .settings-policy-card-head p {
+  margin: 4px 0 0;
+  color: var(--sv-text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+#settingsPanel .settings-policy-card-body {
+  padding: 2px 10px 5px;
+}
+
+#settingsPanel[data-settings-category="security"] #settingsSections > .settings-section {
+  grid-column: 1 / -1;
+}
+
+#settingsPanel .settings-security-disclosure {
+  overflow: hidden;
+}
+
+#settingsPanel .settings-security-disclosure > summary {
+  display: grid;
+  position: relative;
+  gap: 3px;
+  padding: 10px 34px 10px 12px;
+  list-style: none;
+  cursor: pointer;
+}
+
+#settingsPanel .settings-security-disclosure-title {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sv-text);
+  font-size: 0.75rem;
+  font-weight: 740;
+}
+
+#settingsPanel .settings-security-disclosure > summary small {
+  color: var(--sv-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 450;
+  line-height: 1.4;
+}
+
+#settingsPanel .settings-security-disclosure > .section-content {
+  padding: 7px 11px 9px;
+}
+
+#settingsPanel .setting-impact {
+  flex: 1 1 100%;
+  margin-inline-start: min(220px, 34%);
+  color: var(--sv-text-dim);
+  font-size: 0.65625rem;
+  line-height: 1.35;
+}
+
+#settingsPanel .setting-impact[data-tone="warning"] {
+  color: var(--sv-warning);
+}
+
+#settingsPanel .settings-recovery-section > .section-content {
+  display: grid;
+  gap: 10px;
+}
+
+#settingsPanel .settings-recovery-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 15px;
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface-sunken);
+}
+
+#settingsPanel .settings-recovery-card strong {
+  color: var(--sv-text);
+  font-size: 0.8125rem;
+}
+
+#settingsPanel .settings-recovery-card p,
+#settingsPanel .settings-recovery-note {
+  margin: 5px 0 0;
+  color: var(--sv-text-muted);
+  font-size: 0.71875rem;
+  line-height: 1.45;
+}
+
+#settingsPanel .settings-danger-zone {
+  border-color: color-mix(in srgb, var(--sv-danger) 50%, var(--sv-border-subtle));
+  background: color-mix(in srgb, var(--sv-danger) 5%, var(--sv-surface-sunken));
+}
+
+#settingsPanel .settings-danger-zone strong {
+  color: var(--sv-danger);
+}
+
+#settingsPanel .settings-recovery-note {
+  padding: 0 4px 4px;
+}
+
+/* Per-script settings retain explicit persistence, so the actions and dirty
+   state stay visible while the form itself uses the same card vocabulary. */
+#scriptsettingsPanel .editor-panel-head {
+  align-items: center;
+}
+
+#scriptsettingsPanel .script-settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#scriptsettingsPanel .script-settings-save-status {
+  color: var(--sv-success-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+#scriptsettingsPanel .script-settings-save-status[data-state="dirty"] {
+  color: var(--sv-warning);
+}
+
+#scriptsettingsPanel .script-settings-save-status[data-state="saving"] {
+  color: var(--sv-info);
+}
+
+#scriptsettingsPanel .script-settings-save-status[data-state="error"] {
+  color: var(--sv-danger);
+}
+
+#scriptsettingsPanel .script-settings-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 20px 24px;
+}
+
+#scriptsettingsPanel .script-settings-anchor-nav {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 0 0 7px;
+  border-bottom: 1px solid var(--sv-border-subtle);
+  background: var(--bg-content);
+}
+
+#scriptsettingsPanel .script-settings-anchor-nav button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--sv-text-muted);
+  font: inherit;
+  font-size: 0.71875rem;
+  cursor: pointer;
+}
+
+#scriptsettingsPanel .script-settings-anchor-nav button:hover,
+#scriptsettingsPanel .script-settings-anchor-nav button.active {
+  border-bottom-color: var(--sv-accent);
+  color: var(--sv-accent-2);
+}
+
+#scriptsettingsPanel .script-settings-panel > .settings-section {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface);
+  scroll-margin-block: 54px;
+}
+
+#scriptsettingsPanel .script-settings-panel > .settings-section > .section-label {
+  width: auto;
+  min-width: 0;
+  min-height: 36px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--sv-border-subtle);
+  background: var(--sv-surface-sunken);
+  color: var(--sv-text);
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 740;
+}
+
+#scriptsettingsPanel .script-settings-panel > .settings-section > .section-content {
+  padding: 8px 12px 10px;
+}
+
+#scriptsettingsPanel .script-settings-panel .setting-row {
+  min-height: 36px;
+  margin: 0;
+  padding-block: 5px;
+  border-bottom: 1px solid var(--sv-border-subtle);
+}
+
+#scriptsettingsPanel .script-settings-panel .setting-row:last-child {
+  border-bottom: 0;
+}
+
+#scriptsettingsPanel .script-settings-panel :is(.select-field, .input-field) {
+  min-height: 32px;
+  border-radius: 4px;
+}
+
+#scriptsettingsPanel .script-settings-panel > :is(
+  #scriptSettingsConfiguration,
+  #scriptSettingsNotes,
+  #scriptSettingsUrlOverrides
+) {
+  grid-column: 1 / -1;
+}
+
+#scriptsettingsPanel #scriptSettingsConfiguration .script-config-fields:empty::before {
+  content: 'No @var configuration declared';
+  display: block;
+  padding: 18px;
+  color: var(--sv-text-dim);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+#scriptsettingsPanel #scriptNotes {
+  width: 100%;
+  min-height: 88px;
+}
+
 html[data-theme="light"] {
   --sv-text-soft: #475569;
   --sv-text-muted: #475569;
@@ -5477,4 +6047,138 @@ html[data-theme="light"] #scriptsPanel .script-inspector-panel {
     outline-offset: 2px;
     box-shadow: none !important;
   }
+}
+
+/* Keep the settings composition last: the file contains progressively denser
+   shared panel modes above, and these rules are the final desktop contract. */
+#settingsPanel .settings-shell {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  grid-template-areas:
+    "search search"
+    "nav hero"
+    "nav anchors"
+    "nav status"
+    "nav sections"
+    "nav empty";
+  gap: 0 14px;
+}
+
+#settingsPanel .settings-shell > .settings-toolbar {
+  grid-area: search;
+  grid-template-columns: minmax(260px, 430px);
+  top: 54px;
+  min-height: 40px;
+  margin: 0 0 10px;
+  padding: 4px;
+}
+
+#settingsPanel #settingsCategoryFilters {
+  grid-area: nav;
+  position: sticky;
+  top: 106px;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface-sunken);
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  text-align: start;
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter[aria-pressed="true"] {
+  border-color: var(--sv-accent-border);
+  background: color-mix(in srgb, var(--sv-accent) 13%, var(--sv-surface));
+  color: var(--sv-accent-2);
+  box-shadow: inset 2px 0 0 var(--sv-accent);
+}
+
+#settingsPanel #settingsCategoryFilters .settings-filter[aria-pressed="false"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--sv-text-soft);
+  box-shadow: none;
+}
+
+#settingsPanel[data-settings-category="recovery"] .settings-save-summary {
+  display: none;
+}
+
+#settingsPanel .settings-hero {
+  grid-area: hero;
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 72px;
+  margin: 0;
+  padding: 8px 2px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--sv-border-subtle);
+}
+
+#settingsPanel .settings-hero-copy {
+  display: block !important;
+}
+
+#settingsPanel .settings-overview {
+  display: block;
+  width: auto;
+}
+
+#settingsPanel .settings-save-summary {
+  display: grid;
+  justify-items: end;
+  min-height: 0;
+  padding: 4px 0;
+  border: 0;
+}
+
+#settingsPanel .settings-filter-status {
+  grid-area: status;
+  min-height: 18px;
+  margin: 7px 2px;
+}
+
+#settingsPanel .settings-section-anchors {
+  grid-area: anchors;
+}
+
+#settingsPanel #settingsSections {
+  grid-area: sections;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#settingsPanel #settingsEmptyState {
+  grid-area: empty;
+}
+
+#settingsPanel #settingsSections > .settings-section {
+  border: 1px solid var(--sv-border-subtle);
+  border-radius: 8px;
+  background: var(--sv-surface);
+}
+
+#settingsPanel #settingsSections > .settings-section > .section-label {
+  min-height: 36px;
+  padding: 9px 11px;
+  background: var(--sv-surface-sunken);
+  font-size: 0.75rem;
+}
+
+#settingsPanel #settingsSections > .settings-section > .section-content {
+  padding: 7px 11px 9px;
 }

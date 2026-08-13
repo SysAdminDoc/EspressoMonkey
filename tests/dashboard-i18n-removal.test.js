@@ -129,7 +129,7 @@ describe('dashboard i18n-v2 removal', () => {
     expect(dashboardHtml).toContain('data-i18n-placeholder="settingsWebdavUrlPlaceholder"');
     expect(dashboardHtml).toContain('data-i18n="settingsSyncTokenStorageDisclosure"');
     expect(dashboardHtml).toContain('data-i18n="syncDownloadPreview"');
-    expect(dashboardHtml).toContain('data-i18n="syncSaveProviderSettings"');
+    expect(dashboardHtml).toContain('data-i18n="settingsSaveSyncConfiguration"');
   });
 
   it('translates editor preference controls and helper text', () => {

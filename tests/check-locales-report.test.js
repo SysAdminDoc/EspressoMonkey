@@ -52,21 +52,21 @@ describe('scripts/check-locales.mjs', () => {
 
   it('labels every incomplete locale partial and pins explicit baselines', () => {
     const report = runReport();
-    expect(report.sources.englishRuntimeKeyCount).toBe(2001);
+    expect(report.sources.englishRuntimeKeyCount).toBe(2054);
     expect(report.coverage.find(entry => entry.locale === 'en')).toMatchObject({ status: 'complete', percent: 100 });
     expect(report.coverage.find(entry => entry.locale === 'he')).toMatchObject({
       status: 'partial',
       direction: 'rtl',
       translated: 58,
-      englishKeyCount: 2001,
-      coveragePercent: 2.9,
-      baselinePercent: 2.9,
+      englishKeyCount: 2054,
+      coveragePercent: 2.8,
+      baselinePercent: 2.8,
     });
     expect(report.warnings).toHaveLength(8);
     for (const w of report.warnings) {
       expect(w).toHaveProperty('translated');
       expect(w).toHaveProperty('total');
-      expect(w).toHaveProperty('englishKeyCount', 2001);
+      expect(w).toHaveProperty('englishKeyCount', 2054);
       expect(w).toHaveProperty('baseline');
       expect(w).toHaveProperty('coveragePercent');
       expect(w).toHaveProperty('baselinePercent');

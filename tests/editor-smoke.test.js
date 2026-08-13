@@ -32,4 +32,12 @@ describe('editor smoke harness', () => {
     expect(editorSmoke).not.toMatch(/timeout:\s*(?:4000|5000|10000|20000|15000)\b/);
     expect(editorSmoke).toContain('timeout: WAIT_TIMEOUT_MS');
   });
+
+  it('waits on semantic diagnostics, paints them, and accepts capability-hidden run actions', () => {
+    expect(editorSmoke).toContain("getModelMarkers?.({}).length >= 4");
+    expect(editorSmoke).toContain("allow editor diagnostics to paint");
+    expect(editorSmoke).toContain("capture editor smoke screenshot");
+    expect(editorSmoke).toContain("diagnostics.renderedWarningCount < 3");
+    expect(editorSmoke).toContain("run control has zero size without being capability-hidden");
+  });
 });

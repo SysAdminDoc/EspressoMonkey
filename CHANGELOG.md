@@ -2,6 +2,41 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
+## [v3.29.0] — Settings clarity, recovery, and deterministic evidence (2026-08-13)
+
+- Reorganized the complete desktop settings surface into persistent Core,
+  Workspace, Automation, Security, and Recovery destinations while keeping
+  search global and preserving every existing key, default, and handler.
+- Made settings persistence honest: most controls report autosave state,
+  explicit actions are named Apply/Save, and per-script settings keep Save,
+  Reset, and Saved/Unsaved/Saving/Failure feedback visible in the editor header.
+- Grouped security policy by runtime, page/network access, and integrity; added
+  plain-language risk impact; and made disclosure-aware deep links expand and
+  focus the requested control for keyboard users.
+- Added a recovery-only workflow that routes to the existing backup/restore
+  surface, distinguishes a data-preserving restart from factory reset, and
+  isolates the destructive action behind a named confirmation dialog.
+- Added six ImageGen-led desktop settings references and browser-checked the
+  corresponding Core, Workspace, Automation, Security, Recovery, and per-script
+  views at the documented 1280×800 store composition.
+- Repaired screenshot capture races around the asynchronous What's New modal,
+  editor overlay visibility, renderer-owned timers, device-pixel ratio, and
+  frozen category transitions; targeted `--only` captures and settings states
+  now make visual iteration reproducible.
+- Repaired the editor smoke to wait on Monaco's semantic marker state, force a
+  real paint before checking warning decorations, report page errors on failure,
+  and treat Run as optional only when capability policy actually hides it.
+- Added a runtime zero-external-request assertion to captured extension-owned
+  pages, so the dashboard, popup, side panel, install review, and DevTools
+  surfaces fail evidence generation if they request unsolicited HTTP(S)
+  resources.
+- Reconciled the Firefox lint ceiling with the complete web-ext 10.6.0
+  inventory: 59 reviewed compatibility/security warnings, with any new code,
+  file, or count increase still failing the release gate.
+- Refreshed product research and actionable/blocked roadmaps against the public
+  Chrome Web Store listing, current Chrome userScripts/permission guidance, and
+  current Tampermonkey and Violentmonkey settings/recovery patterns.
+
 ## [v3.28.0] — Capability-aware runtime, safer migration & release trust (2026-08-11)
 
 - Replaced remaining Chromium milestone capability gates with feature probes for

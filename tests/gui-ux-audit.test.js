@@ -216,6 +216,42 @@ describe("cross-surface UX audit", () => {
     expect(dashboardHtml).toContain('id="svCommandHealthTitle" data-i18n="workbenchLocalVaultReady">Local vault ready');
   });
 
+  test("settings redesign keeps categories, persistence, security, and recovery truthful", () => {
+    const doc = parseHtml(dashboardHtml);
+    const filters = Array.from(doc.querySelectorAll("#settingsCategoryFilters [data-settings-filter]"));
+    const securityAnchors = Array.from(doc.querySelectorAll("#settingsSecurityAnchors [data-settings-target]"));
+
+    expect(filters.map(button => button.dataset.settingsFilter)).toEqual([
+      "all", "core", "workspace", "automation", "security", "recovery",
+    ]);
+    expect(filters.find(button => button.classList.contains("active"))?.dataset.settingsFilter).toBe("core");
+    expect(doc.querySelector("#themeEditorContainer")?.closest("details")?.querySelector("summary")).not.toBeNull();
+    expect(doc.getElementById("btnSaveAppearance")?.textContent).toContain("Apply custom CSS");
+    expect(doc.getElementById("btnOpenBackupRestore")?.textContent).toContain("Open backup & restore");
+    expect(doc.querySelector(".settings-danger-zone #btnFactoryReset")).not.toBeNull();
+    expect(securityAnchors.map(button => button.dataset.settingsTarget)).toEqual([
+      "securityRuntimeGroup", "securityPermissionsGroup", "securityIntegrityGroup",
+      "runtimeHostPermissionsSection", "blackCheckSettingsSection",
+      "downloadsSettingsSection", "experimentalSettingsSection",
+    ]);
+    expect(dashboardJs).toContain("settingsPanelFilter: 'core'");
+    expect(dashboardJs).toContain("'theme editor': 'workspace'");
+    expect(dashboardJs).toContain("'recovery actions': 'recovery'");
+    expect(dashboardJs).toContain("const effectiveFilter = query ? 'all' : state.settingsPanelFilter");
+    expect(dashboardJs).toContain("function organizeSecuritySettingsSection()");
+    expect(dashboardJs).toContain("const card = document.createElement('details')");
+    expect(dashboardJs).toContain("card.open = index === 0");
+    expect(dashboardJs).toContain("function organizeSupplementalSecuritySections()");
+    expect(dashboardJs).toContain("section.querySelectorAll('details')");
+    expect(dashboardJs).toContain("function setScriptSettingsSaveState(kind, message)");
+    expect(dashboardJs).toContain("setScriptSettingsSaveState('dirty'");
+    expect(doc.querySelectorAll("#btnSaveScriptSettings")).toHaveLength(1);
+    expect(doc.getElementById("scriptSettingsSaveStatus")?.getAttribute("aria-live")).toBe("polite");
+    expect(dashboardWorkbenchCss).toContain("#settingsPanel #settingsCategoryFilters");
+    expect(dashboardWorkbenchCss).toContain("#settingsPanel .settings-policy-grid");
+    expect(dashboardWorkbenchCss).toContain("#scriptsettingsPanel .script-settings-save-status[data-state=\"dirty\"]");
+  });
+
   test("confirmation dialogs name the action and de-emphasize destructive defaults", () => {
     const chainsJs = readFileSync(resolve(process.cwd(), "pages/dashboard-chains.js"), "utf8");
     const profilesJs = readFileSync(resolve(process.cwd(), "pages/dashboard-profiles.js"), "utf8");
@@ -267,7 +303,18 @@ describe("cross-surface UX audit", () => {
     expect(screenshotHarness).toContain("shot.variant === 'editor'");
     expect(screenshotHarness).toContain("window._monacoEditorAdapter?.setTheme(theme)");
     expect(screenshotHarness).toContain("document.documentElement.dataset.theme === theme");
-    expect(screenshotHarness).toContain("setTimeout(resolve, 320)");
+    expect(screenshotHarness).toContain("await new Promise(resolve => setTimeout(resolve, 350))");
+    expect(screenshotHarness).toContain("await settleWhatsNew(page)");
+    expect(screenshotHarness).not.toContain("whatsNewDismiss.click()");
+    expect(screenshotHarness).toContain("protocolTimeout: 30000");
+    expect(screenshotHarness).toContain("deviceScaleFactor: 1");
+    expect(screenshotHarness).not.toContain("deviceScaleFactor: 2");
+    expect(screenshotHarness).toContain("lastSeenVersion: chrome.runtime.getManifest().version");
+    expect(screenshotHarness).toContain("selectScreenshots(process.argv.slice(2))");
+    expect(screenshotHarness).toContain("const SETTINGS_FILTERS = ['core', 'workspace', 'automation', 'security', 'recovery']");
+    expect(screenshotHarness).toContain("shot.variant === 'editor-settings'");
+    expect(screenshotHarness).toContain("async function clickSelector(page, selector)");
+    expect(screenshotHarness).not.toContain("await page.click(");
   });
 
   test("install flow keeps expandable rule disclosures and live review status", () => {

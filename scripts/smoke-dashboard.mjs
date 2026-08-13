@@ -3,48 +3,13 @@ import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import puppeteer from 'puppeteer-core';
-import { closeBrowserWithFallback, removeTempProfileDir } from './browser-smoke-utils.mjs';
+import {
+    closeBrowserWithFallback,
+    removeTempProfileDir,
+    settleWhatsNew,
+} from './browser-smoke-utils.mjs';
 
 const extensionPath = resolve(process.cwd());
-
-const WHATS_NEW_OVERLAY = '.sv-wn-overlay';
-
-/**
- * Dismiss the What's New modal and prove it stays gone. `show()` is gated on an
- * async `chrome.storage.local` read, so a single "is it there?" check races it.
- * Dismissing sets `lastSeenVersion`, which makes `shouldShow()` false for the
- * rest of the session, so one confirmed-quiet window is enough.
- */
-async function settleWhatsNew(page, { quietMs = 400, timeoutMs = 8000 } = {}) {
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-        const dismissed = await page.evaluate(() => {
-            const dismissButton = document.querySelector('#svWnDismiss');
-            if (!dismissButton) return false;
-            dismissButton.click();
-            return true;
-        });
-        if (dismissed) {
-            await page.waitForFunction(
-                (selector) => !document.querySelector(selector),
-                { timeout: 5000 },
-                WHATS_NEW_OVERLAY,
-            );
-            continue;
-        }
-        // No overlay right now — require it to stay absent before trusting it.
-        const stillAbsent = await page
-            .waitForFunction(
-                (selector) => !!document.querySelector(selector),
-                { timeout: quietMs },
-                WHATS_NEW_OVERLAY,
-            )
-            .then(() => false)
-            .catch(() => true);
-        if (stillAbsent) return;
-    }
-    throw new Error("What's New modal never settled: it kept reappearing");
-}
 
 /**
  * Focus a workbench shortcut and activate it, verifying focus actually landed
@@ -292,6 +257,107 @@ try {
         }
     }
 
+    // Settings redesign flow: category state is singular, search spans every
+    // category without silently changing the chosen view, and Recovery links
+    // into the existing backup surface instead of inventing a second flow.
+    await page.evaluate(() => document.querySelector('[data-settings-filter="core"]')?.click());
+    await page.waitForFunction(() => {
+        const core = document.querySelector('[data-settings-filter="core"]');
+        const recovery = document.querySelector('[data-settings-filter="recovery"]');
+        return core?.getAttribute('aria-pressed') === 'true'
+            && recovery?.getAttribute('aria-pressed') === 'false'
+            && !document.querySelector('[data-settings-label="general"]')?.hidden
+            && document.getElementById('recoveryActionsSection')?.hidden;
+    }, { timeout: 5000, polling: 100 });
+
+    await page.evaluate(() => {
+        const input = document.getElementById('settingsQuickFilter');
+        input.value = 'cookies';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.waitForFunction(() => {
+        const core = document.querySelector('[data-settings-filter="core"]');
+        const security = document.getElementById('securitySettingsSection');
+        return core?.getAttribute('aria-pressed') === 'true'
+            && security?.hidden === false
+            && document.getElementById('settingsFilterStatus')?.textContent.includes('cookies');
+    }, { timeout: 5000, polling: 100 });
+
+    await page.evaluate(() => {
+        const input = document.getElementById('settingsQuickFilter');
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        document.querySelector('[data-settings-filter="recovery"]')?.click();
+    });
+    await page.waitForFunction(() => {
+        const panel = document.getElementById('settingsPanel');
+        const saveSummary = panel?.querySelector('.settings-save-summary');
+        return panel?.dataset.settingsCategory === 'recovery'
+            && document.querySelector('[data-settings-filter="recovery"]')?.getAttribute('aria-pressed') === 'true'
+            && document.querySelector('[data-settings-filter="core"]')?.getAttribute('aria-pressed') === 'false'
+            && document.getElementById('recoveryActionsSection')?.hidden === false
+            && getComputedStyle(saveSummary).display === 'none';
+    }, { timeout: 5000, polling: 100 });
+
+    await page.evaluate(() => document.getElementById('btnOpenBackupRestore')?.click());
+    await page.waitForFunction(() => {
+        const panel = document.getElementById('utilitiesPanel');
+        const backup = document.querySelector('[data-utilities-filter="backup"]');
+        return panel?.classList.contains('active') && !panel.hidden
+            && backup?.getAttribute('aria-pressed') === 'true';
+    }, { timeout: 5000, polling: 100 });
+
+    await page.evaluate(() => document.querySelector('.sv-rail-item[data-workbench-tab="scripts"]')?.click());
+    await page.waitForFunction(() => {
+        const panel = document.getElementById('scriptsPanel');
+        return panel?.classList.contains('active') && !panel.hidden;
+    }, { timeout: 5000, polling: 100 });
+    await page.evaluate(() => document.getElementById('btnNewScript')?.click());
+    try {
+        await page.waitForFunction(() => {
+            const overlay = document.querySelector('.editor-overlay.active');
+            if (!(overlay instanceof HTMLElement) || overlay.hidden) return false;
+            const rect = overlay.getBoundingClientRect();
+            return getComputedStyle(overlay).display !== 'none' && rect.width > 0 && rect.height > 0;
+        }, { timeout: 15000, polling: 100 });
+    } catch (error) {
+        const detail = await page.evaluate(() => ({
+            activeElement: document.activeElement?.id || document.activeElement?.tagName,
+            editor: (() => {
+                const overlay = document.getElementById('editorOverlay');
+                if (!overlay) return null;
+                const rect = overlay.getBoundingClientRect();
+                const style = getComputedStyle(overlay);
+                return {
+                    className: overlay.className,
+                    hidden: overlay.hidden,
+                    ariaHidden: overlay.getAttribute('aria-hidden'),
+                    display: style.display,
+                    visibility: style.visibility,
+                    opacity: style.opacity,
+                    width: rect.width,
+                    height: rect.height,
+                };
+            })(),
+            toasts: Array.from(document.querySelectorAll('#toastContainer .toast'))
+                .map(toast => toast.textContent?.trim())
+                .filter(Boolean),
+            newScriptDisabled: document.getElementById('btnNewScript')?.disabled,
+        }));
+        throw new Error(`Editor did not open after New Script: ${JSON.stringify(detail)}`, { cause: error });
+    }
+    await page.evaluate(() => document.getElementById('editorTabScriptSettings')?.click());
+    await page.waitForSelector('#scriptsettingsPanel:not([hidden])', { visible: true, timeout: 5000 });
+    await page.evaluate(() => {
+        const notes = document.getElementById('scriptNotes');
+        notes.value = 'Smoke-test unsaved state';
+        notes.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.waitForFunction(() => {
+        const status = document.getElementById('scriptSettingsSaveStatus');
+        return status?.dataset.state === 'dirty' && /unsaved/i.test(status.textContent || '');
+    }, { timeout: 5000, polling: 100 });
+
     await page.evaluate(() => {
         window.ScriptVaultDashboardUI.confirm(
             'Factory Reset ScriptVault?',
@@ -316,7 +382,7 @@ try {
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !document.querySelector('#modal.show'), { timeout: 5000, polling: 100 });
 
-    console.log(`Dashboard smoke passed for ScriptVault ${snapshot.version} (${extensionId}); ${workbenchDestinations.length} deep links and destructive dialog focus verified.`);
+    console.log(`Dashboard smoke passed for ScriptVault ${snapshot.version} (${extensionId}); ${workbenchDestinations.length} deep links, settings search/recovery routing, per-script dirty state, and destructive dialog focus verified.`);
     if (pageErrors.length > 0) {
         console.warn(`Dashboard smoke observed ${pageErrors.length} console/page error(s):`);
         pageErrors.slice(0, 5).forEach(error => console.warn(`- ${error}`));

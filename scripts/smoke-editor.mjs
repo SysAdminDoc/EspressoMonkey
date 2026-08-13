@@ -223,13 +223,22 @@ try {
             scriptId: 'editor-smoke-lsp',
         }, '*');
     }, diagnosticFixture));
-    await runStage('wait for editor diagnostics', () => editorFrame.waitForFunction(
-        () => document.querySelectorAll('.squiggly-warning').length >= 4,
-        { timeout: WAIT_TIMEOUT_MS }
-    ));
-    const diagnosticCount = await runStage('read editor diagnostics', () => editorFrame.evaluate(
-        () => document.querySelectorAll('.squiggly-warning').length
-    ));
+    await runStage('wait for editor diagnostics', () => editorFrame.waitForFunction(() => {
+        const monaco = window.ScriptVaultMonacoEsm?.monaco;
+        return monaco?.editor?.getModelMarkers?.({}).length >= 4;
+    }, { timeout: WAIT_TIMEOUT_MS }));
+    // Let Chrome paint Monaco's marker decorations without continuously
+    // polling the backgrounded renderer. Semantic markers can be active while
+    // the decoration layer is still waiting for its next frame.
+    await runStage('allow editor diagnostics to paint', () => new Promise(resolve => setTimeout(resolve, 350)));
+    await runStage('capture editor smoke screenshot', () => page.screenshot({ path: join(extensionPath, 'smoke-editor.png') }));
+    const diagnostics = await runStage('read editor diagnostics', () => editorFrame.evaluate(() => {
+        const monaco = window.ScriptVaultMonacoEsm?.monaco;
+        return {
+            markerCount: monaco?.editor?.getModelMarkers?.({}).length || 0,
+            renderedWarningCount: document.querySelectorAll('.squiggly-warning').length,
+        };
+    }));
 
     const geometry = await runStage('measure editor control hit-testing', () => page.evaluate(() => {
         const rect = id => {
@@ -260,10 +269,18 @@ try {
             header: rect('editorTitle'),
             wrapper,
             codePaneShare: wrapper ? wrapper.height / innerHeight : 0,
+            runControl: (() => {
+                const button = document.getElementById('btnEditorRunNow');
+                const box = button?.getBoundingClientRect();
+                return {
+                    hidden: button?.hidden === true,
+                    visible: Boolean(box && box.width > 0 && box.height > 0),
+                    hit: hit('btnEditorRunNow'),
+                };
+            })(),
             hits: {
                 save: hit('btnEditorSave'),
                 close: hit('btnEditorClose'),
-                run: hit('btnEditorRunNow'),
                 export: hit('btnEditorExport'),
                 toggle: hit('btnEditorToggle'),
                 duplicate: hit('btnEditorDuplicate'),
@@ -288,6 +305,15 @@ try {
         for (const [name, result] of Object.entries(geometry.hits)) {
             if (result !== 'ok') failures.push(`${name} control not clickable: ${result}`);
         }
+        if (geometry.runControl.visible && geometry.runControl.hit !== 'ok') {
+            failures.push(`run control not clickable: ${geometry.runControl.hit}`);
+        }
+        if (!geometry.runControl.visible && !geometry.runControl.hidden) {
+            failures.push('run control has zero size without being capability-hidden');
+        }
+        if (diagnostics.renderedWarningCount < 3) {
+            failures.push(`only ${diagnostics.renderedWarningCount} userscript warning decorations rendered`);
+        }
         const workerErrors = pageErrors.filter(error =>
             error.includes("Failed to construct 'Worker'") ||
             error.includes('lib/monaco-esm/workers/')
@@ -300,8 +326,6 @@ try {
         }
     });
 
-    await runStage('capture editor smoke screenshot', () => page.screenshot({ path: join(extensionPath, 'smoke-editor.png') }));
-
     // Close must work with a plain click.
     await runStage('close editor', () => page.evaluate(() => {
         const button = document.getElementById('btnEditorClose');
@@ -311,7 +335,7 @@ try {
     }));
     await runStage('wait for editor to close', () => page.waitForFunction(() => !document.getElementById('editorOverlay').classList.contains('active'), { timeout: WAIT_TIMEOUT_MS }));
 
-    console.log(`Editor smoke passed: overlay full-viewport, code pane ${(geometry.codePaneShare * 100).toFixed(0)}% of viewport, all ${Object.keys(geometry.hits).length} controls hit-testable, ${diagnosticCount} userscript warnings rendered, close works.`);
+    console.log(`Editor smoke passed: overlay full-viewport, code pane ${(geometry.codePaneShare * 100).toFixed(0)}% of viewport, all ${Object.keys(geometry.hits).length} controls hit-testable, ${diagnostics.markerCount} userscript diagnostics active (${diagnostics.renderedWarningCount} warning decorations rendered), close works.`);
     console.log('Screenshot: smoke-editor.png');
     if (pageErrors.length > 0) {
         console.warn(`Editor smoke observed ${pageErrors.length} console/page error(s):`);
@@ -321,6 +345,10 @@ try {
     if (!timeoutTriggered) {
         process.exitCode = 1;
         console.error(`[editor-smoke] ${error?.stack || error?.message || error}`);
+        if (pageErrors.length > 0) {
+            console.error(`[editor-smoke] observed ${pageErrors.length} console/page error(s):`);
+            pageErrors.slice(0, 10).forEach(pageError => console.error(`- ${pageError}`));
+        }
     }
 } finally {
     if (hardTimeout) clearTimeout(hardTimeout);

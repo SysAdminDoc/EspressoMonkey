@@ -11,6 +11,21 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
+    '3.29.0': {
+      title: 'ScriptVault 3.29.0 — Settings That Explain Themselves',
+      date: '2026-08-13',
+      summary: 'This release makes global and per-script settings easier to navigate, explicit about persistence and risk, and safer to recover without changing your existing configuration.',
+      highlights: [
+        { icon: 'FLOW', title: 'Every Setting Has a Home', desc: 'Core, Workspace, Automation, Security, and Recovery stay visible in a persistent category rail, while search can still find controls across the complete settings surface.' },
+        { icon: 'SAFE', title: 'Security Tradeoffs Are Visible', desc: 'Runtime, page/network, integrity, host, reputation, download, and experimental controls use progressive disclosure with concise impact guidance and keyboard-safe deep links.' },
+        { icon: 'SAFE', title: 'Recovery Starts With a Backup', desc: 'The new Recovery destination separates backup/restore and safe restart from Factory Reset, with an explicit explanation of what stays intact.' },
+      ],
+      improvements: [
+        'Per-script settings keep Save Settings, Reset to Defaults, and live saved/unsaved/saving/failure state visible beside the editor.',
+        'Controls that do not autosave now say Apply or Save, so a successful-looking edit is not mistaken for a persisted change.',
+        'Store screenshot capture now uses deterministic 1x rendering, reduced motion, robust overlay waits, targeted settings states, and a zero-external-request assertion.',
+      ],
+    },
     '3.28.0': {
       title: 'ScriptVault 3.28.0 — Capability-Aware Runtime, Safer Migrations & Release Trust',
       date: '2026-08-11',
