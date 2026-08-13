@@ -371,26 +371,6 @@
     const LOCAL_WORKSPACE_POLL_INTERVAL_MS = 2500;
     const LOCAL_WORKSPACE_POLL_MAX_INTERVAL_MS = 30000;
     const LOCAL_WORKSPACE_POLL_MAX_ERRORS = 3;
-    const SETTINGS_SECTION_GROUPS = {
-        general: 'core',
-        appearance: 'workspace',
-        tags: 'workspace',
-        'action menu': 'workspace',
-        'theme editor': 'workspace',
-        'context menu': 'workspace',
-        'userscript search': 'automation',
-        'userscript update': 'automation',
-        externals: 'automation',
-        'userscript sync': 'automation',
-        editor: 'workspace',
-        security: 'security',
-        'runtime host permissions': 'security',
-        blackcheck: 'security',
-        'downloads beta': 'security',
-        experimental: 'security',
-        reset: 'recovery',
-        'recovery actions': 'recovery'
-    };
     const DASHBOARD_SCHEMA_DRIVEN_SETTING_SECTIONS = Object.freeze({
         actionMenu: Object.freeze([
             { key: 'hideDisabledPopup', elementId: 'settingsHideDisabledPopup', property: 'checked', fallback: false, event: 'change' },
@@ -6294,13 +6274,10 @@
         organizeSecuritySettingsSection();
 
         sections.forEach(section => {
-            if (!section.dataset.settingsGroup) {
-                const labelText = normalizeSettingsLabel(section.querySelector('.section-label')?.textContent || '');
-                const contentText = normalizeSettingsLabel(section.querySelector('.section-content')?.textContent || '');
-                section.dataset.settingsLabel = labelText;
-                section.dataset.settingsGroup = SETTINGS_SECTION_GROUPS[labelText] || 'core';
-                section.dataset.settingsSearch = `${labelText} ${contentText}`;
-            }
+            const labelText = normalizeSettingsLabel(section.querySelector('.section-label')?.textContent || '');
+            const contentText = normalizeSettingsLabel(section.querySelector('.section-content')?.textContent || '');
+            section.dataset.settingsLabel = labelText;
+            section.dataset.settingsSearch = `${labelText} ${contentText}`;
         });
 
         elements.settingsFilterButtons?.forEach(button => {

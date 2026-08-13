@@ -235,8 +235,8 @@ describe("cross-surface UX audit", () => {
       "downloadsSettingsSection", "experimentalSettingsSection",
     ]);
     expect(dashboardJs).toContain("settingsPanelFilter: 'core'");
-    expect(dashboardJs).toContain("'theme editor': 'workspace'");
-    expect(dashboardJs).toContain("'recovery actions': 'recovery'");
+    expect(doc.querySelector('[data-i18n="settingsThemeEditor"]')?.closest('.settings-section')?.dataset.settingsGroup).toBe('workspace');
+    expect(doc.getElementById('recoveryActionsSection')?.dataset.settingsGroup).toBe('recovery');
     expect(dashboardJs).toContain("const effectiveFilter = query ? 'all' : state.settingsPanelFilter");
     expect(dashboardJs).toContain("function organizeSecuritySettingsSection()");
     expect(dashboardJs).toContain("const card = document.createElement('details')");
@@ -310,11 +310,34 @@ describe("cross-surface UX audit", () => {
     expect(screenshotHarness).toContain("deviceScaleFactor: 1");
     expect(screenshotHarness).not.toContain("deviceScaleFactor: 2");
     expect(screenshotHarness).toContain("lastSeenVersion: chrome.runtime.getManifest().version");
-    expect(screenshotHarness).toContain("selectScreenshots(process.argv.slice(2))");
+    expect(screenshotHarness).toContain("selectScreenshots(screenshotArgs)");
+    expect(screenshotHarness).toContain("selectCaptureLocale(screenshotArgs)");
+    expect(screenshotHarness).toContain("Emulation.setLocaleOverride");
+    expect(screenshotHarness).toContain("document.documentElement.dir === direction");
+    expect(screenshotHarness).toContain("`${shot.name}-${captureLocale}`");
     expect(screenshotHarness).toContain("const SETTINGS_FILTERS = ['core', 'workspace', 'automation', 'security', 'recovery']");
+    expect(screenshotHarness).toContain('...THEMES.flatMap(theme => SETTINGS_FILTERS.map(settingsFilter => ({');
+    expect(screenshotHarness).toContain("settingsQuery: 'CSP'");
     expect(screenshotHarness).toContain("shot.variant === 'editor-settings'");
+    expect(screenshotHarness).toContain("['saved', 'dirty', 'error'].map(scriptSettingsState => ({");
+    expect(screenshotHarness).toContain("I18n.getMessage('scriptSettingsSaveFailed')");
     expect(screenshotHarness).toContain("async function clickSelector(page, selector)");
     expect(screenshotHarness).not.toContain("await page.click(");
+  });
+
+  test("settings categories use stable groups instead of translated label text", () => {
+    const dashboardDoc = parseHtml(dashboardHtml);
+    const sections = [...dashboardDoc.querySelectorAll('#settingsSections > .settings-section')];
+
+    expect(sections.length).toBeGreaterThan(0);
+    expect(sections.every(section => section.hasAttribute('data-settings-group'))).toBe(true);
+    expect(sections.filter(section => section.dataset.settingsGroup === 'core')).toHaveLength(1);
+    expect(sections.filter(section => section.dataset.settingsGroup === 'workspace')).toHaveLength(6);
+    expect(sections.filter(section => section.dataset.settingsGroup === 'automation')).toHaveLength(4);
+    expect(sections.filter(section => section.dataset.settingsGroup === 'security')).toHaveLength(5);
+    expect(sections.filter(section => section.dataset.settingsGroup === 'recovery')).toHaveLength(1);
+    expect(dashboardJs).toContain("section.dataset.settingsSearch = `${labelText} ${contentText}`");
+    expect(dashboardJs).not.toContain('SETTINGS_SECTION_GROUPS');
   });
 
   test("install flow keeps expandable rule disclosures and live review status", () => {

@@ -4,9 +4,88 @@
 // have the documented severity behavior.
 import { describe, it, expect } from 'vitest';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const SCRIPT = resolve(process.cwd(), 'scripts/check-locales.mjs');
+const PARTIAL_LOCALES = ['de', 'es', 'fr', 'he', 'ja', 'pt', 'ru', 'zh'];
+const SETTINGS_REDESIGN_KEYS = [
+  'settingsCategories',
+  'settingsAllDescription',
+  'settingsCoreDescription',
+  'settingsWorkspaceDescription',
+  'settingsAutomationDescription',
+  'settingsSecurityDescription',
+  'settingsRecoveryDescription',
+  'settingsAutosaveMost',
+  'settingsSecurityRuntime',
+  'settingsSecurityPermissions',
+  'settingsSecurityTrust',
+  'settingsSecurityHostAccess',
+  'settingsSecurityRuntimeGroupTitle',
+  'settingsSecurityRuntimeGroupDescription',
+  'settingsSecurityPermissionsGroupTitle',
+  'settingsSecurityPermissionsGroupDescription',
+  'settingsSecurityIntegrityGroupTitle',
+  'settingsSecurityIntegrityGroupDescription',
+  'settingsSecurityHostGroupDescription',
+  'settingsSecurityBlackCheckGroupDescription',
+  'settingsSecurityDownloadsGroupDescription',
+  'settingsSecurityExperimentalGroupDescription',
+  'settingsSecurityModifyCspImpact',
+  'settingsSecurityHttpHeadersImpact',
+  'settingsSecurityLocalFilesImpact',
+  'settingsSecurityCookiesImpact',
+  'settingsSecurityPrivilegedApisImpact',
+  'settingsSecurityScopedHostsImpact',
+  'settingsSecurityUrlRetentionImpact',
+  'settingsSecurityOnDeviceAiImpact',
+  'settingsDownloads',
+  'settingsApplyCustomCss',
+  'settingsExplicitApplyNote',
+  'settingsCustomizeTheme',
+  'settingsCustomizeThemeDescription',
+  'settingsApplyBadgeColor',
+  'settingsSaveSyncConfiguration',
+  'settingsApplyLinterConfig',
+  'settingsApplyPageAccessRules',
+  'settingsApplyBlacklist',
+  'settingsApplyDownloadAllowlist',
+  'settingsRecoveryActions',
+  'settingsProtectVaultFirst',
+  'settingsProtectVaultDescription',
+  'settingsOpenBackupRestore',
+  'settingsRestartDescription',
+  'settingsDangerZone',
+  'settingsFactoryResetDescription',
+  'settingsRecoverySafeNote',
+  'saved',
+  'scriptSettingsGroupNavigation',
+  'scriptSettingsUnsaved',
+  'scriptSettingsSaveFailed',
+  // Older shell keys are part of the same visible flow and must not fall back
+  // around the newly translated copy.
+  'settingsPreferences',
+  'settingsVisibleLabel',
+  'settingsAdvanced',
+  'settingsSearchPlaceholder',
+  'settingsCategoryFilters',
+  'settingsFilterAll',
+  'settingsFilterCore',
+  'settingsFilterWorkspace',
+  'settingsFilterAutomation',
+  'settingsFilterSecurity',
+  'settingsFilterRecovery',
+  'settingsShowingAllSections',
+  'settingsShowingFilterMode',
+  'settingsNoMatchesTitle',
+  'settingsNoMatchesDescription',
+  'perScriptSettingsTitle',
+  'perScriptSettingsDescription',
+  'saveSettings',
+  'resetToDefaults',
+  'workflowSettingsSaving',
+];
 
 function runReport(flags = []) {
   const stdout = execFileSync('node', [SCRIPT, '--json', ...flags], { encoding: 'utf8' });
@@ -52,15 +131,25 @@ describe('scripts/check-locales.mjs', () => {
 
   it('labels every incomplete locale partial and pins explicit baselines', () => {
     const report = runReport();
+    const expectedCoverage = {
+      de: { translated: 140, coveragePercent: 6.8 },
+      es: { translated: 141, coveragePercent: 6.9 },
+      fr: { translated: 136, coveragePercent: 6.6 },
+      he: { translated: 151, coveragePercent: 7.4 },
+      ja: { translated: 164, coveragePercent: 8 },
+      pt: { translated: 139, coveragePercent: 6.8 },
+      ru: { translated: 210, coveragePercent: 10.2 },
+      zh: { translated: 141, coveragePercent: 6.9 },
+    };
     expect(report.sources.englishRuntimeKeyCount).toBe(2054);
     expect(report.coverage.find(entry => entry.locale === 'en')).toMatchObject({ status: 'complete', percent: 100 });
     expect(report.coverage.find(entry => entry.locale === 'he')).toMatchObject({
       status: 'partial',
       direction: 'rtl',
-      translated: 58,
+      translated: 151,
       englishKeyCount: 2054,
-      coveragePercent: 2.8,
-      baselinePercent: 2.8,
+      coveragePercent: 7.4,
+      baselinePercent: 7.4,
     });
     expect(report.warnings).toHaveLength(8);
     for (const w of report.warnings) {
@@ -73,6 +162,15 @@ describe('scripts/check-locales.mjs', () => {
       expect(w.status).toBe('partial');
       expect(w.translated).toBeGreaterThanOrEqual(w.baseline);
       expect(w.locale).not.toBe('en');
+      expect(w).toMatchObject(expectedCoverage[w.locale]);
+    }
+  });
+
+  it('keeps the complete settings-redesign shell translated in every partial locale', () => {
+    for (const locale of PARTIAL_LOCALES) {
+      const source = JSON.parse(readFileSync(resolve(process.cwd(), `src/locales/${locale}.json`), 'utf8'));
+      expect(Object.keys(source.runtime), locale).toEqual(expect.arrayContaining(SETTINGS_REDESIGN_KEYS));
+      expect(source.runtimeCoverageBaseline, locale).toBe(Object.keys(source.runtime).length);
     }
   });
 });

@@ -93,15 +93,25 @@ async function clickSelector(page, selector) {
 
 const THEMES = ['dark', 'light', 'catppuccin', 'oled'];
 const SETTINGS_FILTERS = ['core', 'workspace', 'automation', 'security', 'recovery'];
+const SUPPORTED_CAPTURE_LOCALES = new Set(['de', 'en', 'es', 'fr', 'he', 'ja', 'pt', 'ru', 'zh']);
 const SCREENSHOTS = [
   ...THEMES.map(theme => ({ name: `dashboard-${theme}`, page: 'dashboard', variant: 'scripts', theme, width: 1280, height: 800 })),
   ...THEMES.map(theme => ({ name: `dashboard-settings-${theme}`, page: 'dashboard', variant: 'settings', theme, width: 1280, height: 800 })),
-  ...SETTINGS_FILTERS.map(settingsFilter => ({
-    name: `dashboard-settings-${settingsFilter}-dark`,
+  ...THEMES.flatMap(theme => SETTINGS_FILTERS.map(settingsFilter => ({
+    name: `dashboard-settings-${settingsFilter}-${theme}`,
     page: 'dashboard',
     variant: 'settings',
     settingsFilter,
-    theme: 'dark',
+    theme,
+    width: 1280,
+    height: 800,
+  }))),
+  ...THEMES.map(theme => ({
+    name: `dashboard-settings-search-${theme}`,
+    page: 'dashboard',
+    variant: 'settings',
+    settingsQuery: 'CSP',
+    theme,
     width: 1280,
     height: 800,
   })),
@@ -114,7 +124,17 @@ const SCREENSHOTS = [
     height: 800,
   }))),
   ...THEMES.map(theme => ({ name: `dashboard-editor-${theme}`, page: 'dashboard', variant: 'editor', theme, width: 1280, height: 800 })),
-  { name: 'dashboard-editor-settings-dark', page: 'dashboard', variant: 'editor-settings', theme: 'dark', width: 1280, height: 800 },
+  ...THEMES.flatMap(theme => ['saved', 'dirty', 'error'].map(scriptSettingsState => ({
+    name: scriptSettingsState === 'saved'
+      ? `dashboard-editor-settings-${theme}`
+      : `dashboard-editor-settings-${scriptSettingsState}-${theme}`,
+    page: 'dashboard',
+    variant: 'editor-settings',
+    scriptSettingsState,
+    theme,
+    width: 1280,
+    height: 800,
+  }))),
   ...THEMES.map(theme => ({ name: `dashboard-confirm-${theme}`, page: 'dashboard', variant: 'confirm', theme, width: 1280, height: 800 })),
   ...THEMES.map(theme => ({ name: `popup-${theme}`, page: 'popup', theme, width: 400, height: 600 })),
   ...THEMES.map(theme => ({ name: `sidepanel-${theme}`, page: 'sidepanel', theme, width: 420, height: 800 })),
@@ -136,7 +156,20 @@ function selectScreenshots(args) {
   return selected;
 }
 
-const selectedScreenshots = selectScreenshots(process.argv.slice(2));
+function selectCaptureLocale(args) {
+  const localeArg = args.find(arg => arg.startsWith('--locale='));
+  if (!localeArg) return '';
+
+  const locale = localeArg.slice('--locale='.length).trim().toLowerCase();
+  if (!SUPPORTED_CAPTURE_LOCALES.has(locale)) {
+    throw new Error(`Unsupported capture locale: ${locale || '<empty>'}`);
+  }
+  return locale;
+}
+
+const screenshotArgs = process.argv.slice(2);
+const selectedScreenshots = selectScreenshots(screenshotArgs);
+const captureLocale = selectCaptureLocale(screenshotArgs);
 
 mkdirSync(screenshotDir, { recursive: true });
 
@@ -164,7 +197,8 @@ try {
   await primeCaptureProfile(browser, extensionId);
 
   for (const shot of selectedScreenshots) {
-    console.log(`Capturing: ${shot.name}.png`);
+    const outputName = captureLocale ? `${shot.name}-${captureLocale}` : shot.name;
+    console.log(`Capturing: ${outputName}.png`);
     const page = await browser.newPage();
     const externalRequests = new Set();
     page.on('request', request => {
@@ -178,6 +212,10 @@ try {
     // can stall Chrome's renderer on the dashboard's largest views.
     await page.setViewport({ width: shot.width, height: shot.height, deviceScaleFactor: 1 });
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    if (captureLocale) {
+      const localeSession = await page.createCDPSession();
+      await localeSession.send('Emulation.setLocaleOverride', { locale: captureLocale });
+    }
     console.log('  viewport ready');
     await page.evaluateOnNewDocument((theme) => {
       localStorage.setItem('sv_theme', theme);
@@ -266,26 +304,69 @@ try {
         if (shot.variant === 'editor-settings') {
           await clickSelector(page, '#editorTabScriptSettings');
           await page.waitForSelector('#scriptsettingsPanel:not([hidden])', { visible: true, timeout: 10000 });
+          if (shot.scriptSettingsState === 'dirty') {
+            await page.evaluate(() => {
+              const input = document.querySelector('#scriptsettingsPanel .script-settings-panel input:not([disabled])');
+              if (!(input instanceof HTMLInputElement)) {
+                throw new Error('No editable per-script setting was available for dirty-state capture');
+              }
+              input.checked = !input.checked;
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+          } else if (shot.scriptSettingsState === 'error') {
+            await page.evaluate(() => {
+              const status = document.getElementById('scriptSettingsSaveStatus');
+              if (!(status instanceof HTMLElement)) {
+                throw new Error('Per-script save status was unavailable for error-state capture');
+              }
+              status.dataset.state = 'error';
+              status.textContent = I18n.getMessage('scriptSettingsSaveFailed') || 'Save failed';
+            });
+          }
+          await page.waitForFunction(
+            state => document.getElementById('scriptSettingsSaveStatus')?.dataset.state === state,
+            { timeout: 5000 },
+            shot.scriptSettingsState || 'saved',
+          );
         }
       } else if (shot.variant && shot.variant !== 'scripts') {
         await clickSelector(page, `.sv-rail-item[data-workbench-tab="${shot.variant}"]:not(.sv-rail-subitem)`);
         const panelSelector = `#${shot.variant}Panel`;
         await page.waitForSelector(panelSelector, { visible: true, timeout: 10000 });
-        if (shot.variant === 'settings' && shot.settingsFilter) {
-          await clickSelector(page, `[data-settings-filter="${shot.settingsFilter}"]`);
-          await page.waitForFunction(
-            filter => {
-              const buttons = Array.from(document.querySelectorAll('#settingsCategoryFilters [data-settings-filter]'));
-              const selected = buttons.filter(button => button.classList.contains('active'));
-              return selected.length === 1
-                && selected[0]?.dataset.settingsFilter === filter
-                && selected[0]?.getAttribute('aria-pressed') === 'true'
-                && buttons.filter(button => button !== selected[0])
-                  .every(button => button.getAttribute('aria-pressed') === 'false');
-            },
-            { timeout: 5000 },
-            shot.settingsFilter,
-          );
+        if (shot.variant === 'settings') {
+          if (shot.settingsFilter) {
+            await clickSelector(page, `[data-settings-filter="${shot.settingsFilter}"]`);
+            await page.waitForFunction(
+              filter => {
+                const buttons = Array.from(document.querySelectorAll('#settingsCategoryFilters [data-settings-filter]'));
+                const selected = buttons.filter(button => button.classList.contains('active'));
+                return selected.length === 1
+                  && selected[0]?.dataset.settingsFilter === filter
+                  && selected[0]?.getAttribute('aria-pressed') === 'true'
+                  && buttons.filter(button => button !== selected[0])
+                    .every(button => button.getAttribute('aria-pressed') === 'false');
+              },
+              { timeout: 5000 },
+              shot.settingsFilter,
+            );
+          }
+          if (shot.settingsQuery) {
+            await page.evaluate(query => {
+              const input = document.getElementById('settingsQuickFilter');
+              if (!(input instanceof HTMLInputElement)) {
+                throw new Error('Settings search input was unavailable for query capture');
+              }
+              input.value = query;
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+            }, shot.settingsQuery);
+            await page.waitForFunction(
+              query => document.getElementById('settingsQuickFilter')?.value === query
+                && [...document.querySelectorAll('#settingsSections > .settings-section')]
+                  .some(section => !section.hidden),
+              { timeout: 5000 },
+              shot.settingsQuery,
+            );
+          }
         }
       }
     } else {
@@ -298,6 +379,18 @@ try {
       await page.waitForSelector(selectors[shot.page], { visible: true, timeout: 15000 });
     }
     console.log('  target surface ready');
+
+    if (captureLocale) {
+      const expectedDirection = captureLocale === 'he' ? 'rtl' : 'ltr';
+      await page.waitForFunction(
+        (locale, direction) => document.documentElement.lang === locale
+          && document.documentElement.dir === direction,
+        { timeout: 5000 },
+        captureLocale,
+        expectedDirection,
+      );
+      console.log(`  locale ready: ${captureLocale} (${expectedDirection})`);
+    }
 
     if (shot.page === 'sidepanel') {
       await page.evaluate(() => {
@@ -331,7 +424,7 @@ try {
     );
     console.log('  final theme verified');
 
-    const outputPath = join(screenshotDir, `${shot.name}.png`);
+    const outputPath = join(screenshotDir, `${outputName}.png`);
     await page.screenshot({ path: outputPath, fullPage: false });
     if (externalRequests.size > 0) {
       throw new Error(
@@ -339,11 +432,11 @@ try {
       );
     }
     console.log('  external requests: 0');
-    console.log(`Captured: ${shot.name}.png (${shot.width}x${shot.height})`);
+    console.log(`Captured: ${outputName}.png (${shot.width}x${shot.height})`);
     await page.close();
   }
 
-  console.log(`\nSaved ${selectedScreenshots.length} screenshot(s) to assets/screenshots/`);
+  console.log(`\nSaved ${selectedScreenshots.length} screenshot(s) to assets/screenshots/${captureLocale ? ` (${captureLocale})` : ''}`);
 } finally {
   await closeBrowserWithFallback(browser, 'Screenshot capture');
   await removeTempProfileDir(userDataDir, 'Screenshot capture');

@@ -8072,7 +8072,7 @@
             <div class="settings-filter-status" id="settingsFilterStatus" data-i18n="settingsShowingAllSections">Showing all sections</div>
             <div class="settings-sections" id="settingsSections">
             <!-- General Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="core">
                 <div class="section-label" data-i18n="settingsGeneral">General</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8120,7 +8120,7 @@
             </div>
 
             <!-- Appearance Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsAppearance">Appearance</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8164,7 +8164,7 @@
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsThemeEditor">Theme Editor</div>
                 <div class="section-content">
                     <details class="settings-disclosure settings-theme-disclosure">
@@ -8178,7 +8178,7 @@
             </div>
 
             <!-- Tags Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsTags">Tags</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8188,7 +8188,7 @@
             </div>
 
             <!-- Action Menu Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsActionMenu">Action Menu</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8235,7 +8235,7 @@
             </div>
 
             <!-- Context Menu Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsContextMenu">Context Menu</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8251,7 +8251,7 @@
             </div>
 
             <!-- Userscript Search Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="automation">
                 <div class="section-label" data-i18n="settingsUserscriptSearch">Userscript Search</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8268,7 +8268,7 @@
             </div>
 
             <!-- Userscript Update Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="automation">
                 <div class="section-label" data-i18n="settingsUpdate">Userscript Update</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8301,7 +8301,7 @@
             </div>
 
             <!-- Externals Section -->
-            <div class="settings-section" data-config-level="advanced">
+            <div class="settings-section" data-config-level="advanced" data-settings-group="automation">
                 <div class="section-label"><span data-i18n="settingsExternals">Externals</span> <span class="help-icon" title="@require and @resource URL handling" data-i18n-title="settingsExternalsHelp">?</span></div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8317,7 +8317,7 @@
             </div>
 
             <!-- Userscript Sync Section -->
-            <div class="settings-section" data-config-level="advanced">
+            <div class="settings-section" data-config-level="advanced" data-settings-group="automation">
                 <div class="section-label" data-i18n="settingsUserscriptSync">Userscript Sync</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8494,7 +8494,7 @@
             </div>
 
             <!-- Editor Section -->
-            <div class="settings-section">
+            <div class="settings-section" data-settings-group="workspace">
                 <div class="section-label" data-i18n="settingsEditor">Editor</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8621,7 +8621,7 @@
             </div>
 
             <!-- Security Section -->
-            <div class="settings-section" id="securitySettingsSection" data-config-level="advanced" role="region" aria-labelledby="securitySettingsLabel">
+            <div class="settings-section" id="securitySettingsSection" data-config-level="advanced" data-settings-group="security" role="region" aria-labelledby="securitySettingsLabel">
                 <div class="section-label" id="securitySettingsLabel" data-i18n="settingsSecurity">Security</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8795,7 +8795,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- Runtime Host Permissions Section -->
-            <div class="settings-section" id="runtimeHostPermissionsSection" data-config-level="advanced" role="region" aria-labelledby="runtimeHostPermissionsLabel" tabindex="-1">
+            <div class="settings-section" id="runtimeHostPermissionsSection" data-config-level="advanced" data-settings-group="security" role="region" aria-labelledby="runtimeHostPermissionsLabel" tabindex="-1">
                 <div class="section-label" id="runtimeHostPermissionsLabel" data-i18n="settingsRuntimeHostPermissions">Runtime Host Permissions</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8814,7 +8814,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- BlackCheck Section -->
-            <div class="settings-section" id="blackCheckSettingsSection" data-config-level="advanced">
+            <div class="settings-section" id="blackCheckSettingsSection" data-config-level="advanced" data-settings-group="security">
                 <div class="section-label" data-i18n="settingsBlackCheck">BlackCheck</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8852,7 +8852,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- Downloads BETA Section -->
-            <div class="settings-section" id="downloadsSettingsSection" data-config-level="advanced">
+            <div class="settings-section" id="downloadsSettingsSection" data-config-level="advanced" data-settings-group="security">
                 <div class="section-label" data-i18n="settingsDownloadsBeta">Downloads BETA</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8896,7 +8896,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- Experimental Section -->
-            <div class="settings-section" id="experimentalSettingsSection" data-config-level="advanced">
+            <div class="settings-section" id="experimentalSettingsSection" data-config-level="advanced" data-settings-group="security">
                 <div class="section-label" data-i18n="settingsExperimental">Experimental</div>
                 <div class="section-content">
                     <div class="setting-row">
@@ -8921,7 +8921,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
             </div>
 
             <!-- Reset Section -->
-            <div class="settings-section settings-recovery-section" id="recoveryActionsSection">
+            <div class="settings-section settings-recovery-section" id="recoveryActionsSection" data-settings-group="recovery">
                 <div class="section-label" data-i18n="settingsRecoveryActions">Recovery Actions</div>
                 <div class="section-content">
                     <div class="settings-recovery-card settings-recovery-protect">

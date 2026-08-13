@@ -280,26 +280,28 @@ English &bull; German &bull; Spanish &bull; French &bull; Hebrew &bull; Japanese
 
 English is complete. German, Spanish, French, Hebrew, Japanese, Portuguese,
 Russian, and Chinese currently cover the manifest and a measured subset of the
-runtime interface; untranslated runtime messages fall back to English. Hebrew
-sets the extension document direction to RTL, and count labels use the active
-locale's `Intl.PluralRules` categories.
+runtime interface; untranslated runtime messages fall back to English. The
+complete redesigned settings shell—including category/search state, security
+impact copy, recovery warnings, and per-script save feedback—is translated in
+all eight partial catalogs. Hebrew sets the extension document direction to
+RTL, and count labels use the active locale's `Intl.PluralRules` categories.
 
 Contributors edit one source per language under `src/locales/`; `npm run
 locale:generate` produces both the typed runtime catalog and `_locales`
 messages. `npm run locale:check:gate` reports each locale against the complete
-English runtime key set (2,001 keys) and rejects stale generated files,
+English runtime key set (2,054 keys) and rejects stale generated files,
 locale-set drift, or any drop below the reviewed per-language ratchet:
 
 | Locale | Runtime coverage | Ratchet |
 | --- | ---: | ---: |
-| German | 43 / 2,001 (2.1%) | 43 |
-| Spanish | 45 / 2,001 (2.2%) | 45 |
-| French | 43 / 2,001 (2.1%) | 43 |
-| Hebrew | 58 / 2,001 (2.9%) | 58 |
-| Japanese | 71 / 2,001 (3.5%) | 71 |
-| Portuguese | 42 / 2,001 (2.1%) | 42 |
-| Russian | 117 / 2,001 (5.8%) | 117 |
-| Chinese | 46 / 2,001 (2.3%) | 46 |
+| German | 140 / 2,054 (6.8%) | 140 |
+| Spanish | 141 / 2,054 (6.9%) | 141 |
+| French | 136 / 2,054 (6.6%) | 136 |
+| Hebrew | 151 / 2,054 (7.4%) | 151 |
+| Japanese | 164 / 2,054 (8.0%) | 164 |
+| Portuguese | 139 / 2,054 (6.8%) | 139 |
+| Russian | 210 / 2,054 (10.2%) | 210 |
+| Chinese | 141 / 2,054 (6.9%) | 141 |
 
 The dashboard and popup prefer `@name:<ui-locale>` and
 `@description:<ui-locale>` metadata, including regional keys such as

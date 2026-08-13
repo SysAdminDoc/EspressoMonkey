@@ -10,6 +10,12 @@ All notable changes to ScriptVault will be documented in this file.
 - Made settings persistence honest: most controls report autosave state,
   explicit actions are named Apply/Save, and per-script settings keep Save,
   Reset, and Saved/Unsaved/Saving/Failure feedback visible in the editor header.
+- Translated the redesigned settings shell across German, Spanish, French,
+  Hebrew, Japanese, Portuguese, Russian, and Chinese; raised every locale
+  coverage ratchet and added locale-aware screenshot capture for visual QA.
+  Settings categories now use stable markup-backed group IDs, so translated
+  section labels cannot collapse Workspace, Automation, Security, or Recovery
+  content into Core.
 - Grouped security policy by runtime, page/network access, and integrity; added
   plain-language risk impact; and made disclosure-aware deep links expand and
   focus the requested control for keyboard users.
@@ -22,7 +28,8 @@ All notable changes to ScriptVault will be documented in this file.
 - Repaired screenshot capture races around the asynchronous What's New modal,
   editor overlay visibility, renderer-owned timers, device-pixel ratio, and
   frozen category transitions; targeted `--only` captures and settings states
-  now make visual iteration reproducible.
+  now make visual iteration reproducible. Category, cross-category search, and
+  per-script saved/dirty/error captures cover dark, light, Catppuccin, and OLED.
 - Repaired the editor smoke to wait on Monaco's semantic marker state, force a
   real paint before checking warning decorations, report page errors on failure,
   and treat Run as optional only when capability policy actually hides it.

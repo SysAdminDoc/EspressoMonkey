@@ -4,20 +4,6 @@ Actionable work only. Historical and completed roadmap material is archived in C
 
 ## Actionable Items
 
-### P1 — Complete settings redesign localization
-
-- **Problem:** The 53 new category, persistence, security, recovery, and
-  per-script state strings are complete in English but fall back to English in
-  the eight partial locale catalogs.
-- **Hook:** `src/locales/en.json`, generated locale catalogs, and the existing
-  `locale:generate` / `locale:check:gate` pipeline.
-- **Done when:** each supported locale translates the new keys without reducing
-  the coverage ratchet; all generated runtime catalogs are refreshed; category,
-  search, save/error, security-impact, and recovery copy is checked in all four
-  themes.
-- **Effort/risk:** M; translation quality is the primary risk, with no settings
-  schema or permission change.
-
 ### P2 — Resolve the Chrome scoped-host default with a release matrix
 
 - **Problem:** Chrome ships required `<all_urls>` for compatibility while the

@@ -24,24 +24,24 @@ Recovery destinations; search spans categories; explicit-save controls say so;
 high-risk security controls use progressive disclosure and plain-language
 impact copy; recovery actions are separated from normal preferences; and
 per-script settings expose a persistent save/reset bar with saved, dirty,
-saving, and failure states. The screenshot harness now produces deterministic
-1x 1280×800 images, waits on DOM state rather than a stale Puppeteer visibility
-handle, honors reduced motion, and fails if an extension-owned surface requests
-an HTTP(S) resource.
+saving, and failure states. That complete redesigned shell is now translated
+across the eight partial runtime catalogs, including RTL Hebrew and
+locale-aware count forms. The screenshot harness now produces deterministic 1x
+1280×800 images, can pin any supported locale for layout review, waits on DOM
+state rather than a stale Puppeteer visibility handle, honors reduced motion,
+and fails if an extension-owned surface requests an HTTP(S) resource.
 
 Priority order after this pass:
 
-1. **Next / P1:** translate the new settings-navigation, persistence, security,
-   and recovery copy in the eight partial locale catalogs.
-2. **Next / P2:** reconcile the Chrome optional-host-permission prototype with
+1. **Next / P2:** reconcile the Chrome optional-host-permission prototype with
    the intentionally broad shipping manifest and prove install/run/update/
    dependency/cookie/download behavior before changing defaults.
-3. **Next / P2:** turn the six settings parity pairs into a maintained visual
+2. **Next / P2:** turn the six settings parity pairs into a maintained visual
    regression contract at the documented 1280×800 store viewport and a
    secondary 1920×1080 desktop viewport.
-4. **Blocked / P1:** publish 3.29.0 and replace stale Chrome Web Store copy and
+3. **Blocked / P1:** publish 3.29.0 and replace stale Chrome Web Store copy and
    screenshots after maintainer review.
-5. **Blocked / P2:** validate Chrome 138+ "Allow User Scripts" setup in a real
+4. **Blocked / P2:** validate Chrome 138+ "Allow User Scripts" setup in a real
    installed profile and run authenticated provider/browser-store matrices.
 
 ## Product and Surface Map
@@ -127,12 +127,15 @@ JavaScript, settings keys, and design tokens rather than shipping the bitmap.
 | Recovery | backup/restore, safe restart, factory reset | `recovery.png` | recovery-only page, safe-data explanation, destructive action isolated and confirmed |
 | Per-script settings | update, sync, execution, notifications, configuration, notes, URL overrides | `per-script.png` | sticky action/state header, dirty-state feedback, anchors, two-column cards |
 
-The corresponding runtime screenshots are generated as
-`dashboard-settings-{core,workspace,automation,security,recovery}-dark.png` and
-`dashboard-editor-settings-dark.png`. Side-by-side comparison at the same
-16:10 desktop composition confirmed the shell, hierarchy, navigation, content
-grouping, color system, control geometry, and persistence states. Functional
-smoke coverage verifies category singularity, cross-category search, recovery
+The corresponding runtime screenshots are generated for Core, Workspace,
+Automation, Security, Recovery, cross-category search, and per-script
+saved/dirty/error states in dark, light, Catppuccin, and OLED. Capture can pin
+any supported locale with `--locale=<code>`; an 80-image locale matrix on
+2026-08-13 covered all eight partial catalogs at 1280×800 with zero external
+requests. Side-by-side comparison at the same 16:10 desktop composition
+confirmed the shell, hierarchy, navigation, content grouping, color system,
+control geometry, directionality, and persistence states. Functional smoke
+coverage verifies category singularity, cross-category search, recovery
 routing, security deep-link focus through closed disclosures, per-script dirty
 state, and destructive-dialog focus order.
 
