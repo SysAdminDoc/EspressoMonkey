@@ -1,7 +1,7 @@
-# Design QA — Primary Dashboard Redesign
+# Design QA — ScriptVault Workbench and Popup
 
 Date: 2026-08-14
-Target: ScriptVault 3.30.1 desktop extension dashboard
+Target: ScriptVault 3.30.2 desktop extension dashboard and popup
 Primary viewport: 1280×800 at device scale factor 1
 Secondary viewport: 1920×1080 at device scale factor 1
 
@@ -61,6 +61,42 @@ emerald, border, and elevated-surface tokens; image quality is unchanged because
 no raster assets were added; and app-specific copy remains localized and
 unabridged.
 
+## Popup footer large-text follow-up
+
+- Source visual truth: `assets/design-qa/popup-footer-fix-2026-08-14/source-popup.png`, preserved from the supplied `C:\Users\--\Desktop\2026-08-14 19_01_50-019ff580-9227-7070-8e45-85db1ba9c010 - File Explorer.png`
+- Rendered implementation: `assets/design-qa/popup-footer-fix-2026-08-14/implementation-popup-200.png`
+- Full-view comparison: `assets/design-qa/popup-footer-fix-2026-08-14/popup-footer-full-comparison.png` (source left, implementation right)
+- Focused comparison: `assets/design-qa/popup-footer-fix-2026-08-14/popup-footer-focused-comparison.png` (source left, implementation right)
+- Viewport and pixels: source 313×673 pixels with unknown CSS size and device
+  scale; implementation 360×600 CSS px at device scale factor 1, 200% root text
+  scale, and 360×600 output pixels. The full-view comparison preserves each
+  capture's aspect ratio rather than inventing a source density. The focused
+  footer crops are normalized to a shared 720 px content width before pairing.
+- State: dark theme, scripts enabled, browser-internal/non-runnable current
+  page, empty matching-script state, Utilities submenu closed, and setup warning
+  omitted to match the supplied capture.
+- Primary interaction tested: Help and Open Dashboard remain distinct native
+  buttons; Open Dashboard's localized label occupies one text line and remains
+  entirely inside its button.
+- Console/network check: the capture completed with zero external HTTP(S)
+  requests and no page errors.
+
+### Popup findings and comparison history
+
+| Iteration | Priority | Evidence and impact | Fix and post-fix evidence |
+|---|---|---|---|
+| Supplied capture | P1 | Open Dashboard is forced into a narrow fractional column, wraps onto two lines, and its lower edge is clipped by the popup viewport. A persistent navigation action is visibly incomplete. | Replaced fixed grid fractions with content-aware wrapping flex tracks, kept each label on one line, centered the actions, and gave the icon a stable flex basis. |
+| 200% text-scale capture | Passed | The focused comparison shows both complete labels and full button borders. Runtime geometry reports one label line, a 348×49.1875 px dashboard button, a 348×104.375 px footer ending at y=585.03125 in the 600 px viewport, and no horizontal overflow. | No actionable P0, P1, or P2 issue remains. The footer stays two-column at 100% and 150%, then stacks complete full-width actions when their intrinsic widths no longer fit. |
+
+Fonts and typography continue to use the existing Segoe/system stack; the
+dashboard label is unabridged and single-line at 200%. Spacing and layout now
+reflow by intrinsic content width instead of narrowing the longer action.
+Graphite, border, focus, and text tokens are unchanged. Image quality is not
+applicable because the fix introduces no raster imagery, and the supplied logo
+and icon assets remain intact. App-specific copy and localization keys are
+unchanged. The button semantics, group label, focus styling, and minimum target
+sizes remain intact.
+
 ## State contract
 
 - Theme: dark graphite/emerald.
@@ -85,7 +121,7 @@ unabridged.
 | P2 | The first parity layer used blur and freeform pill radii outside the product contract. | Removed backdrop blur, restored the finite radius scale, and added complete forced-colors system tokens. |
 
 Intentional differences are not parity defects: the runtime setup banner uses
-the exact detected browser capability message; version text is 3.30.1; real
+the exact detected browser capability message; version text is 3.30.2; real
 controls and authoritative values replace decorative or invented details; and
 existing icon assets are used instead of generating ornamental substitutes.
 
@@ -102,12 +138,15 @@ existing icon assets are used instead of generating ornamental substitutes.
 5. Compared the supplied populated/open-dropdown screenshot with an equal-pixel
    runtime capture, fixed the five P1/P2 findings above, and repeated the
    comparison after the final checkbox/status track adjustment.
+6. Reproduced the supplied popup footer failure with 200% root text, replaced
+   the narrow fractional tracks with intrinsic wrapping actions, and compared
+   the resulting full view and normalized footer crop in the same inputs.
 
 ## Verification
 
-- `npm run build` — passed; generated runtime reports version 3.30.1.
+- `npm run build` — passed; generated runtime reports version 3.30.2.
 - `npm run build:edge:stage` — passed.
-- `npm run check` — passed; 255 files and 2,939 tests passed.
+- `npm run check` — passed; 255 files and 2,940 tests passed.
 - `npm run test:visual` — passed; six browser visual tests across dark, light,
   Catppuccin, OLED, and the open Saved views state.
 - `tests/e2e/dashboard-workbench.spec.js` — passed; real extension geometry,
@@ -119,8 +158,12 @@ existing icon assets are used instead of generating ornamental substitutes.
 - Both six-shot capture runs completed with zero external HTTP(S) requests.
 - Populated open-menu captures at 1908×908 and 1280×800 also completed with
   zero external HTTP(S) requests.
+- Popup captures at 100% and 200% text scale passed label-containment,
+  viewport-containment, and horizontal-overflow geometry checks with zero
+  external HTTP(S) requests.
 
 No unresolved P0, P1, or P2 visual or functional findings remain for the
-defined desktop states, including the populated library and open dropdown.
+defined desktop states, including the populated library, open dropdown, and
+large-text popup footer.
 
 final result: passed

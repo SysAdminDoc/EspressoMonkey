@@ -219,6 +219,16 @@ function selectOutputSuffix(args) {
   return suffix;
 }
 
+function selectPopupTextScale(args) {
+  const scaleArg = args.find(arg => arg.startsWith('--popup-text-scale='));
+  if (!scaleArg) return 100;
+  const scale = Number(scaleArg.slice('--popup-text-scale='.length).trim());
+  if (!Number.isInteger(scale) || scale < 100 || scale > 200) {
+    throw new Error('The --popup-text-scale value must be an integer from 100 through 200');
+  }
+  return scale;
+}
+
 function selectCaptureFixture(args) {
   const fixtureArg = args.find(arg => arg.startsWith('--fixture='));
   if (!fixtureArg) return 'empty';
@@ -249,6 +259,7 @@ const outputSuffix = selectOutputSuffix(screenshotArgs);
 const captureFixture = selectCaptureFixture(screenshotArgs);
 const openControl = selectOpenControl(screenshotArgs);
 const dismissSetupWarning = screenshotArgs.includes('--dismiss-setup-warning');
+const popupTextScale = selectPopupTextScale(screenshotArgs);
 
 mkdirSync(screenshotDir, { recursive: true });
 
@@ -280,10 +291,15 @@ try {
     console.log(`Capturing: ${outputName}.png`);
     const page = await browser.newPage();
     const externalRequests = new Set();
+    const runtimeErrors = [];
     page.on('request', request => {
       if (/^https?:\/\//iu.test(request.url())) {
         externalRequests.add(`${request.resourceType()}: ${request.url()}`);
       }
+    });
+    page.on('pageerror', error => runtimeErrors.push(`pageerror: ${error.message}`));
+    page.on('console', message => {
+      if (message.type() === 'error') runtimeErrors.push(`console: ${message.text()}`);
     });
     console.log('  page created');
     // Chrome Web Store artwork is dimension-validated in physical pixels.
@@ -486,6 +502,18 @@ try {
     }
     console.log('  target surface ready');
 
+    if (shot.page === 'popup') {
+      await page.evaluate(({ hideSetupWarning, textScale }) => {
+        if (hideSetupWarning) {
+          const warning = document.getElementById('setupWarning');
+          warning?.classList.remove('visible');
+          warning?.setAttribute('hidden', '');
+          warning?.style.setProperty('display', 'none', 'important');
+        }
+        document.documentElement.style.fontSize = `${textScale}%`;
+      }, { hideSetupWarning: dismissSetupWarning, textScale: popupTextScale });
+    }
+
     if (captureLocale) {
       const expectedDirection = captureLocale === 'he' ? 'rtl' : 'ltr';
       await page.waitForFunction(
@@ -535,14 +563,71 @@ try {
     });
     console.log('  final theme verified');
 
+    // Taking the screenshot forces a paint in headless/backgrounded Chrome.
+    // Read geometry afterward so text-scaling checks observe the same frame
+    // that is written to disk rather than a stale pre-paint layout snapshot.
     const outputPath = join(screenshotDir, `${outputName}.png`);
     await page.screenshot({ path: outputPath, fullPage: false });
+
+    if (shot.page === 'popup') {
+      const popupGeometry = await page.evaluate(({ hideSetupWarning, textScale }) => {
+        if (hideSetupWarning) {
+          const warning = document.getElementById('setupWarning');
+          warning?.classList.remove('visible');
+          warning?.setAttribute('hidden', '');
+          warning?.style.setProperty('display', 'none', 'important');
+        }
+        document.documentElement.style.fontSize = `${textScale}%`;
+
+        const button = document.getElementById('btnDashboard');
+        const label = button?.querySelector('.footer-text');
+        const footer = document.querySelector('.footer-actions');
+        if (!(button instanceof HTMLElement) || !(label instanceof HTMLElement) || !(footer instanceof HTMLElement)) {
+          throw new Error('Popup footer controls were unavailable');
+        }
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        const lineRects = [...range.getClientRects()].filter(rect => rect.width > 0 && rect.height > 0);
+        const buttonRect = button.getBoundingClientRect();
+        const labelRect = label.getBoundingClientRect();
+        const footerRect = footer.getBoundingClientRect();
+        return {
+          textScale,
+          lineCount: lineRects.length,
+          labelInsideButton: labelRect.left >= buttonRect.left - 0.5
+            && labelRect.right <= buttonRect.right + 0.5
+            && labelRect.top >= buttonRect.top - 0.5
+            && labelRect.bottom <= buttonRect.bottom + 0.5,
+          footerInsideViewport: footerRect.left >= -0.5
+            && footerRect.right <= innerWidth + 0.5
+            && footerRect.top >= -0.5
+            && footerRect.bottom <= innerHeight + 0.5,
+          documentFitsHorizontally: document.documentElement.scrollWidth <= innerWidth + 1,
+          button: { width: buttonRect.width, height: buttonRect.height, bottom: buttonRect.bottom },
+          footer: { width: footerRect.width, height: footerRect.height, bottom: footerRect.bottom },
+        };
+      }, { hideSetupWarning: dismissSetupWarning, textScale: popupTextScale });
+      if (
+        popupGeometry.lineCount !== 1
+        || !popupGeometry.labelInsideButton
+        || !popupGeometry.footerInsideViewport
+        || !popupGeometry.documentFitsHorizontally
+      ) {
+        throw new Error(`Popup footer geometry failed: ${JSON.stringify(popupGeometry)}`);
+      }
+      console.log(`  popup footer geometry verified: ${JSON.stringify(popupGeometry)}`);
+    }
+
     if (externalRequests.size > 0) {
       throw new Error(
         `Extension-owned surface requested external resources:\n${[...externalRequests].join('\n')}`,
       );
     }
+    if (shot.page === 'popup' && runtimeErrors.length > 0) {
+      throw new Error(`Extension-owned surface reported runtime errors:\n${runtimeErrors.join('\n')}`);
+    }
     console.log('  external requests: 0');
+    if (shot.page === 'popup') console.log('  runtime errors: 0');
     console.log(`Captured: ${outputName}.png (${shot.width}x${shot.height})`);
     await page.close();
   }

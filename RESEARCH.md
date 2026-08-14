@@ -10,7 +10,7 @@ public site relevant to this pass is therefore the Chrome Web Store listing,
 while the extension-owned dashboard, popup, side panel, install review, editor,
 and DevTools panel are the product surfaces.
 
-The local 3.30.1 candidate is materially ahead of the public Chrome Web Store
+The local 3.30.2 candidate is materially ahead of the public Chrome Web Store
 listing. On 2026-08-13 the listing still served version 2.3.4, updated
 2026-05-04, with 125 users and one 5-star rating. Its copy still says 24+ GM
 APIs, CodeMirror, five sync providers including Chrome Sync, and eight
@@ -47,7 +47,7 @@ Priority order after this pass:
 1. **Next / P2:** turn the six primary-route comparison pairs into a maintained
    stable-region visual-difference contract; deterministic captures and the
    four-theme shell baseline are already in place.
-2. **Blocked / P1:** publish 3.30.1 and replace stale Chrome Web Store copy and
+2. **Blocked / P1:** publish 3.30.2 and replace stale Chrome Web Store copy and
    screenshots after maintainer review.
 3. **Blocked / P2:** redesign the static bridge and manually review Chromium's
    native first-time optional-host prompt before reconsidering a scoped default.
@@ -178,7 +178,7 @@ secondary desktop overflow and composition check.
   clear explanation. ScriptVault's installed-profile matrix now supplies the
   missing runtime evidence: the static all-site content bridge defeats a
   manifest-only scoped conversion, while deleting it removes compatibility
-  behavior. Required `<all_urls>` remains the reviewed default for 3.30.1.
+  behavior. Required `<all_urls>` remains the reviewed default for 3.30.2.
 - Tampermonkey's explicit Save requirement for sync configuration reinforces
   the new honest persistence labels. Its per-script settings and URL overrides
   validate keeping script policy adjacent to the editor rather than burying it
@@ -237,6 +237,6 @@ Accessed 2026-08-14:
 
 - Which stable regions of the six primary-route ImageGen/runtime pairs should
   become blocking pixel baselines without introducing font-rendering churn?
-- Which public-store claims should lead the 3.30.1 listing refresh: permission
+- Which public-store claims should lead the 3.30.2 listing refresh: permission
   clarity, recovery/trust, or authoring depth? Publication remains a maintainer
   decision.

@@ -79,6 +79,18 @@ describe("popup UX markup", () => {
     expect(scriptList?.getAttribute("aria-label")).toBe("Scripts for this page");
   });
 
+  test("footer actions preserve readable labels without clipping", () => {
+    const doc = parsePopup();
+    const footerActions = doc.querySelector(".footer-actions");
+    const dashboardLabel = doc.querySelector("#btnDashboard .footer-text");
+
+    expect(footerActions?.querySelectorAll(".footer")).toHaveLength(2);
+    expect(dashboardLabel?.textContent).toBe("Open Dashboard");
+    expect(popupHtml).toMatch(/\.footer-actions\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-wrap:\s*wrap;/);
+    expect(popupHtml).toMatch(/\.footer\s*\{[\s\S]*?flex:\s*1 0 max-content;[\s\S]*?justify-content:\s*center;[\s\S]*?min-width:\s*0;/);
+    expect(popupHtml).toMatch(/\.footer-text\s*\{[\s\S]*?white-space:\s*nowrap;/);
+  });
+
   test("setup warning is version-specific and live-announced", () => {
     const doc = parsePopup();
     const warning = doc.getElementById("setupWarning");

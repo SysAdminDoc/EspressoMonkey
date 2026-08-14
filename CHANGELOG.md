@@ -2,7 +2,17 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
-## [v3.30.1] — One coherent desktop workbench (2026-08-14)
+## [v3.30.2] — Popup footer scale resilience (2026-08-14)
+
+- Kept the popup's Open Dashboard label on one line and changed the footer to
+  distribute actions by their content width instead of forcing narrow columns.
+- Let Help and Open Dashboard stack as complete full-width actions at large
+  text sizes, preventing the dashboard label and button from being clipped by
+  the popup viewport.
+- Added deterministic 100–200% popup text-scale capture and geometry checks so
+  the footer must remain inside the viewport with its label inside the button.
+
+### Included from the unreleased v3.30.1 candidate — One coherent desktop workbench (2026-08-14)
 
 - Bumped every authoritative and visible version surface to 3.30.1 so a
   manually reloaded unpacked installation is immediately distinguishable.

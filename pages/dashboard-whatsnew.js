@@ -11,6 +11,21 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
+    '3.30.2': {
+      title: 'ScriptVault 3.30.2 — A Popup That Fits',
+      date: '2026-08-14',
+      summary: 'This patch keeps the popup footer readable and fully reachable when browser or system text is enlarged.',
+      highlights: [
+        { icon: 'FLOW', title: 'Dashboard Stays on One Line', desc: 'The longer Open Dashboard action now gets the space its label needs instead of breaking across a narrow fixed column.' },
+        { icon: 'FLOW', title: 'Large Text Reflows Cleanly', desc: 'When both actions no longer fit side by side, Help and Open Dashboard become full-width rows rather than clipped controls.' },
+        { icon: 'SAFE', title: 'The Viewport Is a Test', desc: 'Popup capture now checks the visible footer geometry at text scales up to 200%, including label containment and horizontal overflow.' },
+      ],
+      improvements: [
+        'Footer icons keep a stable footprint while labels remain complete and untruncated.',
+        'Both actions are centered consistently in compact and stacked layouts.',
+        'The unpacked extension version is now 3.30.2 for an unambiguous reload check.',
+      ],
+    },
     '3.30.1': {
       title: 'ScriptVault 3.30.1 — One Coherent Workbench',
       date: '2026-08-14',

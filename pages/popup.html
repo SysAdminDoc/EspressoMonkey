@@ -774,15 +774,18 @@
 
         /* Footer */
         .footer-actions {
-            display: grid;
-            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            display: flex;
+            flex-wrap: wrap;
             gap: 6px;
             width: 100%;
         }
 
         .footer {
             display: flex;
+            flex: 1 0 max-content;
             align-items: center;
+            justify-content: center;
+            min-width: 0;
             width: 100%;
             padding: 8px 10px;
             background: linear-gradient(135deg, rgb(from var(--sv-accent) r g b / 0.16), rgb(from var(--sv-info) r g b / 0.12) 120%);
@@ -850,6 +853,7 @@
         }
 
         .footer-icon {
+            flex: 0 0 20px;
             width: 20px;
             height: 20px;
             margin-inline-end: 8px;
@@ -867,6 +871,8 @@
         .footer-text {
             font-size: 0.8125rem;
             font-weight: 600;
+            line-height: 1.2;
+            white-space: nowrap;
         }
 
         /* Toast notification */
