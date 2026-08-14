@@ -167,9 +167,37 @@ function selectCaptureLocale(args) {
   return locale;
 }
 
+function selectViewportOverride(args) {
+  const viewportArg = args.find(arg => arg.startsWith('--viewport='));
+  if (!viewportArg) return null;
+
+  const match = viewportArg.slice('--viewport='.length).trim().match(/^(\d{3,4})x(\d{3,4})$/u);
+  if (!match) throw new Error('The --viewport value must use WIDTHxHEIGHT, for example 1920x1080');
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (width < 320 || width > 3840 || height < 480 || height > 2160) {
+    throw new Error(`Unsupported screenshot viewport: ${width}x${height}`);
+  }
+  return { width, height };
+}
+
+function selectOutputSuffix(args) {
+  const suffixArg = args.find(arg => arg.startsWith('--suffix='));
+  if (!suffixArg) return '';
+  const suffix = suffixArg.slice('--suffix='.length).trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]*$/u.test(suffix)) {
+    throw new Error('The --suffix value must contain only lowercase letters, numbers, and hyphens');
+  }
+  return suffix;
+}
+
 const screenshotArgs = process.argv.slice(2);
-const selectedScreenshots = selectScreenshots(screenshotArgs);
+const viewportOverride = selectViewportOverride(screenshotArgs);
+const selectedScreenshots = selectScreenshots(screenshotArgs).map(shot => (
+  viewportOverride ? { ...shot, ...viewportOverride } : shot
+));
 const captureLocale = selectCaptureLocale(screenshotArgs);
+const outputSuffix = selectOutputSuffix(screenshotArgs);
 
 mkdirSync(screenshotDir, { recursive: true });
 
@@ -197,7 +225,7 @@ try {
   await primeCaptureProfile(browser, extensionId);
 
   for (const shot of selectedScreenshots) {
-    const outputName = captureLocale ? `${shot.name}-${captureLocale}` : shot.name;
+    const outputName = [shot.name, captureLocale, outputSuffix].filter(Boolean).join('-');
     console.log(`Capturing: ${outputName}.png`);
     const page = await browser.newPage();
     const externalRequests = new Set();
@@ -249,6 +277,15 @@ try {
       console.log('  dashboard shell ready');
       await settleWhatsNew(page);
       console.log("  What's New settled");
+      await page.waitForFunction(() => {
+        const emptyState = document.getElementById('emptyState');
+        const hasVisibleEmptyState = emptyState instanceof HTMLElement
+          && getComputedStyle(emptyState).display !== 'none'
+          && emptyState.getBoundingClientRect().height > 0;
+        const hasRenderedRows = (document.getElementById('scriptTableBody')?.children.length || 0) > 0;
+        return hasVisibleEmptyState || hasRenderedRows;
+      }, { timeout: 15000, polling: 100 });
+      console.log('  script library settled');
       if (shot.variant === 'confirm') {
         await page.evaluate(() => {
           window.ScriptVaultDashboardUI?.confirm(
@@ -422,6 +459,11 @@ try {
       { timeout: 5000 },
       shot.theme,
     );
+    await page.evaluate(() => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    });
     console.log('  final theme verified');
 
     const outputPath = join(screenshotDir, `${outputName}.png`);
@@ -436,7 +478,10 @@ try {
     await page.close();
   }
 
-  console.log(`\nSaved ${selectedScreenshots.length} screenshot(s) to assets/screenshots/${captureLocale ? ` (${captureLocale})` : ''}`);
+  const captureLabel = [captureLocale, outputSuffix, viewportOverride && `${viewportOverride.width}x${viewportOverride.height}`]
+    .filter(Boolean)
+    .join(', ');
+  console.log(`\nSaved ${selectedScreenshots.length} screenshot(s) to assets/screenshots/${captureLabel ? ` (${captureLabel})` : ''}`);
 } finally {
   await closeBrowserWithFallback(browser, 'Screenshot capture');
   await removeTempProfileDir(userDataDir, 'Screenshot capture');

@@ -3,6 +3,7 @@ import { page } from "vitest/browser";
 import "../../pages/theme-tokens.css";
 import "../../pages/dashboard.css";
 import "../../pages/dashboard-workbench.css";
+import "../../pages/dashboard-parity.css";
 
 const rows = [
   ["Clean Reader", "Remove distractions and improve article typography", "4.8.2", "news.example", "12m ago", "Signed", true],
@@ -50,7 +51,7 @@ function renderDashboardShell(theme = "dark") {
         <aside class="sv-nav-rail" aria-label="ScriptVault workspace">
           <div class="sv-rail-brand">
             <div class="script-icon-placeholder" aria-hidden="true">SV</div>
-            <div><strong>ScriptVault</strong><span>v3.29.0</span></div>
+            <div><strong>ScriptVault</strong><span>v3.30.0</span></div>
           </div>
           <nav class="sv-rail-nav" aria-label="Dashboard sections">
             <button class="sv-rail-item active" type="button"><span class="sv-rail-icon">#</span><span>Scripts</span><span class="sv-rail-count">12</span></button>
@@ -77,7 +78,10 @@ function renderDashboardShell(theme = "dark") {
             <div class="sv-rail-storage-track"><span style="width:24%"></span></div>
             <small>24%</small>
           </div>
-          <div class="sv-rail-footer"><span class="sv-sync-dot"></span><span>Local-first vault</span></div>
+          <div class="sv-rail-footer">
+            <span class="sv-sync-dot"></span>
+            <span class="sv-rail-footer-copy"><strong>Local-first vault</strong><small>Nothing leaves this device</small></span>
+          </div>
         </aside>
         <section class="tm-content sv-workbench-main">
           <header class="sv-workbench-topbar" aria-label="Workspace command bar">

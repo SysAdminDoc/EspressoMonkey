@@ -1,4 +1,4 @@
-// ScriptVault v3.29.0 - Background Service Worker
+// ScriptVault v3.30.0 - Background Service Worker
 // Comprehensive userscript manager with cloud sync and auto-updates
 // NOTE: This file is built from source modules. Edit the individual files in
 // shared/, modules/, and lib/, then run `npm run build` to regenerate.
@@ -5330,6 +5330,7 @@ const I18n = (() => {
       "scriptFilterSingleSite": "Single Site",
       "storageUsage": "Storage usage",
       "workbenchLocalFirstVault": "Local-first vault",
+      "emptyVaultLocalOnly": "Nothing leaves this browser unless you enable sync.",
       "workbenchCommandBarAria": "Workspace command bar",
       "workbenchCurrentSectionAria": "Current dashboard section",
       "workbenchCommandSearch": "Search or run a command",
@@ -6085,8 +6086,8 @@ const I18n = (() => {
       "scriptHome": "Home",
       "scriptPerformance": "Performance",
       "scriptActions": "Actions",
-      "emptyVaultTitle": "Your vault is empty",
-      "emptyVaultDescription": "Create a script or import an existing userscript. ScriptVault keeps scripts local unless you enable sync or backups.",
+      "emptyVaultTitle": "Your vault is ready",
+      "emptyVaultDescription": "Create your first script or bring in an existing userscript.",
       "emptyCreateScript": "Create Script",
       "emptyImportScript": "Import Script",
       "emptyNoMatchesTitle": "No scripts match this view",
@@ -6107,6 +6108,8 @@ const I18n = (() => {
       "review": "Review",
       "updateQueueSummary": "Update queue summary",
       "noQueuedUpdates": "No queued updates.",
+      "updatesCurrentTitle": "Everything is current",
+      "updatesCurrentDescription": "There are no updates waiting for review.",
       "queuedUpdatesSummary": "{safe} safe, {review} requiring review.",
       "noScripts": "No userscripts installed",
       "noScriptsDesc": "Create a new script or import one to get started.",
@@ -6218,7 +6221,9 @@ const I18n = (() => {
       "settingsAutoReloadPages": "Auto reload pages",
       "settingsAutoReloadHelp": "Automatically reload the active page when a script changes",
       "settingsDebugScripts": "Debug scripts",
+      "settingsDebugScriptsDescription": "Enable console logs and debugging helpers.",
       "settingsShowFixedSource": "Show fixed source",
+      "settingsShowFixedSourceDescription": "Display repaired metadata and source when available.",
       "settingsLoggingLevelLabel": "Logging Level:",
       "loggingOff": "Off",
       "loggingError": "Error",
@@ -6455,7 +6460,7 @@ const I18n = (() => {
       "utilitiesOperations": "Operations",
       "utilitiesTitle": "Utilities",
       "utilitiesHeroDescription": "Export scripts, restore archives, connect cloud backups, and inspect runtime behavior. Restores can overwrite matching scripts, and app settings only come back when the source contains them and you opt in below.",
-      "utilitiesCloud": "Cloud",
+      "utilitiesCloud": "Cloud Sync",
       "utilitiesImports": "Imports",
       "utilitiesWorkspaces": "Workspaces",
       "utilitiesVisible": "Visible",
@@ -6467,7 +6472,7 @@ const I18n = (() => {
       "utilitiesFilterCloud": "Cloud",
       "utilitiesFilterDiagnostics": "Diagnostics",
       "utilitiesShowingAll": "Showing all utilities",
-      "utilityGeneral": "General",
+      "utilityGeneral": "Backup & Restore",
       "exportIncludeStorageLabel": "Include stored values in JSON, ZIP, and cloud backups, then restore them when present",
       "exportIncludeSettingsLabel": "Include ScriptVault settings in JSON and cloud backups, then restore them when present",
       "exportIncludeSettingsCredentialsLabel": "Include sync credentials when settings are exported or restored",
@@ -8382,15 +8387,15 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 140,
       "translatedRuntimeMessages": 140,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "en": {
       "name": "English",
       "direction": "ltr",
       "translationStatus": "complete",
-      "runtimeCoverageBaseline": 2054,
-      "translatedRuntimeMessages": 2054,
-      "totalRuntimeMessages": 2054
+      "runtimeCoverageBaseline": 2059,
+      "translatedRuntimeMessages": 2059,
+      "totalRuntimeMessages": 2059
     },
     "es": {
       "name": "Espa\xF1ol",
@@ -8398,7 +8403,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 141,
       "translatedRuntimeMessages": 141,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "fr": {
       "name": "Fran\xE7ais",
@@ -8406,7 +8411,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 136,
       "translatedRuntimeMessages": 136,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "he": {
       "name": "\u05E2\u05D1\u05E8\u05D9\u05EA",
@@ -8414,7 +8419,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 151,
       "translatedRuntimeMessages": 151,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "ja": {
       "name": "\u65E5\u672C\u8A9E",
@@ -8422,7 +8427,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 164,
       "translatedRuntimeMessages": 164,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "pt": {
       "name": "Portugu\xEAs",
@@ -8430,7 +8435,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 139,
       "translatedRuntimeMessages": 139,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "ru": {
       "name": "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
@@ -8438,7 +8443,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 210,
       "translatedRuntimeMessages": 210,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     },
     "zh": {
       "name": "\u4E2D\u6587",
@@ -8446,7 +8451,7 @@ const I18n = (() => {
       "translationStatus": "partial",
       "runtimeCoverageBaseline": 141,
       "translatedRuntimeMessages": 141,
-      "totalRuntimeMessages": 2054
+      "totalRuntimeMessages": 2059
     }
   };
 

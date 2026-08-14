@@ -4,16 +4,18 @@ Actionable work only. Historical and completed roadmap material is archived in C
 
 ## Actionable Items
 
-### P2 — Automate desktop settings visual parity
+### P2 — Automate primary-route visual-difference thresholds
 
-- **Problem:** Six ImageGen/runtime pairs were reviewed manually at 1280×800;
-  later CSS or browser rendering changes can regress hierarchy, disclosure
-  state, clipping, or selected-category styling without breaking DOM tests.
+- **Problem:** Six ImageGen/runtime pairs for Scripts, Updates, Settings,
+  Utilities, Trash, and Help were reviewed manually at 1280×800; later CSS or
+  browser rendering changes can regress hierarchy, clipping, or selected-route
+  styling without breaking DOM tests.
 - **Hook:** `scripts/capture-store-screenshots.mjs`, the six references under
-  `assets/mockups/settings-redesign-2026-08-13/`, and the existing visual-test
-  configuration.
-- **Done when:** deterministic 1x captures cover 1280×800 and 1920×1080 desktop
-  viewports, compare stable masks/regions with reviewed thresholds, emit a
+  `assets/mockups/dashboard-redesign-2026-08-14/`, the same-input comparisons
+  under `assets/design-qa/dashboard-redesign-2026-08-14/`, and the existing
+  visual-test configuration.
+- **Done when:** the existing deterministic 1x captures at 1280×800 and
+  1920×1080 compare stable masks/regions with reviewed thresholds, emit a
   useful diff on failure, and retain the zero-external-request assertion.
 - **Effort/risk:** M; browser font/antialiasing variance must not create a flaky
   blocking gate.

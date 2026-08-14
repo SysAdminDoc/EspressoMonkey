@@ -210,7 +210,7 @@ describe("cross-surface UX audit", () => {
     expect(workflowControllers).toContain("previous.catch(() => false).then(() => saveNow(key, value, context))");
     expect(workflowControllers).toContain("Couldn’t save this setting. Your previous value is still active.");
     expect(dashboardJs).not.toContain("showToast('Setting saved', 'success')");
-    expect(dashboardJs).toContain("Your scripts are up to date");
+    expect(dashboardJs).toContain("Everything is current");
     expect(dashboardJs).toContain("data-empty-check-updates");
     expect(dashboardJs).toContain("'Sync not configured'");
     expect(dashboardHtml).toContain('id="svCommandHealthTitle" data-i18n="workbenchLocalVaultReady">Local vault ready');
@@ -314,7 +314,9 @@ describe("cross-surface UX audit", () => {
     expect(screenshotHarness).toContain("selectCaptureLocale(screenshotArgs)");
     expect(screenshotHarness).toContain("Emulation.setLocaleOverride");
     expect(screenshotHarness).toContain("document.documentElement.dir === direction");
-    expect(screenshotHarness).toContain("`${shot.name}-${captureLocale}`");
+    expect(screenshotHarness).toContain("[shot.name, captureLocale, outputSuffix].filter(Boolean).join('-')");
+    expect(screenshotHarness).toContain("selectViewportOverride(screenshotArgs)");
+    expect(screenshotHarness).toContain("selectOutputSuffix(screenshotArgs)");
     expect(screenshotHarness).toContain("const SETTINGS_FILTERS = ['core', 'workspace', 'automation', 'security', 'recovery']");
     expect(screenshotHarness).toContain('...THEMES.flatMap(theme => SETTINGS_FILTERS.map(settingsFilter => ({');
     expect(screenshotHarness).toContain("settingsQuery: 'CSP'");

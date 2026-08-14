@@ -10,7 +10,7 @@ public site relevant to this pass is therefore the Chrome Web Store listing,
 while the extension-owned dashboard, popup, side panel, install review, editor,
 and DevTools panel are the product surfaces.
 
-The local 3.29.0 candidate is materially ahead of the public Chrome Web Store
+The local 3.30.0 candidate is materially ahead of the public Chrome Web Store
 listing. On 2026-08-13 the listing still served version 2.3.4, updated
 2026-05-04, with 125 users and one 5-star rating. Its copy still says 24+ GM
 APIs, CodeMirror, five sync providers including Chrome Sync, and eight
@@ -18,18 +18,17 @@ languages; the local product documents 36+ GM APIs, Monaco, six providers, and
 nine languages. Publication and listing-copy refresh require maintainer action
 and are blocked outside this repository pass.
 
-The highest-value safe work was a complete desktop settings reorganization.
-Global settings now have persistent Core, Workspace, Automation, Security, and
-Recovery destinations; search spans categories; explicit-save controls say so;
-high-risk security controls use progressive disclosure and plain-language
-impact copy; recovery actions are separated from normal preferences; and
-per-script settings expose a persistent save/reset bar with saved, dirty,
-saving, and failure states. That complete redesigned shell is now translated
-across the eight partial runtime catalogs, including RTL Hebrew and
-locale-aware count forms. The screenshot harness now produces deterministic 1x
-1280×800 images, can pin any supported locale for layout review, waits on DOM
-state rather than a stale Puppeteer visibility handle, honors reduced motion,
-and fails if an extension-owned surface requests an HTTP(S) resource.
+The highest-value safe work began with a complete desktop settings
+reorganization and now extends the same product system across every primary
+workbench destination. Global settings retain persistent Core, Workspace,
+Automation, Security, and Recovery destinations; search spans categories;
+explicit-save controls say so; high-risk controls explain impact; and
+per-script settings expose persistent save/reset state. Scripts, Updates,
+Settings, Utilities, Trash, and Help now share the same desktop navigation,
+command header, spacing, typography, and action system. The screenshot harness
+produces deterministic 1x 1280×800 and 1920×1080 images, waits for the script
+library to settle, honors reduced motion, and fails if an extension-owned
+surface requests an HTTP(S) resource.
 
 The Chrome host-access question is now resolved for this release. A real
 Chromium 151 installed-profile matrix compared shipping, a manifest-only
@@ -45,10 +44,10 @@ first-grant UX is accepted.
 
 Priority order after this pass:
 
-1. **Next / P2:** turn the six settings parity pairs into a maintained visual
-   regression contract at the documented 1280×800 store viewport and a
-   secondary 1920×1080 desktop viewport.
-2. **Blocked / P1:** publish 3.29.0 and replace stale Chrome Web Store copy and
+1. **Next / P2:** turn the six primary-route comparison pairs into a maintained
+   stable-region visual-difference contract; deterministic captures and the
+   four-theme shell baseline are already in place.
+2. **Blocked / P1:** publish 3.30.0 and replace stale Chrome Web Store copy and
    screenshots after maintainer review.
 3. **Blocked / P2:** redesign the static bridge and manually review Chromium's
    native first-time optional-host prompt before reconsidering a scoped default.
@@ -121,7 +120,7 @@ from every captured extension-owned page. User-initiated script downloads,
 updates, discovery, dependencies, sync, or cloud actions are product functions,
 not unsolicited advertising, and are outside the cold-surface assertion.
 
-## Settings Page Matrix and Design Parity
+## Workbench Page Matrix and Design Parity
 
 All selected ImageGen references are stored under
 `assets/mockups/settings-redesign-2026-08-13/`. Each was generated from the
@@ -149,6 +148,25 @@ coverage verifies category singularity, cross-category search, recovery
 routing, security deep-link focus through closed disclosures, per-script dirty
 state, and destructive-dialog focus order.
 
+On 2026-08-14, a second ImageGen-led pass produced and implemented six matched
+desktop references for the primary menu destinations:
+
+| Destination | Runtime focus | Selected mockup | Implemented/verified result |
+|---|---|---|---|
+| Scripts | search, status/site/view filters, create/import, list and empty state | `assets/mockups/dashboard-redesign-2026-08-14/scripts.png` | full-width command surface and focused empty-library hierarchy |
+| Updates | summary, check/update actions, review queue and current state | `assets/mockups/dashboard-redesign-2026-08-14/updates.png` | persistent operational header and readable empty result |
+| Settings | category rail, global search, real control groups and save semantics | `assets/mockups/dashboard-redesign-2026-08-14/settings.png` | category navigation and one-column control rhythm preserved |
+| Utilities | backup/export, cloud, restore/import, schedule | `assets/mockups/dashboard-redesign-2026-08-14/utilities.png` | wide desktop operations grid using the existing handlers |
+| Trash | retention, search/filter, deleted metadata, size and recovery actions | `assets/mockups/dashboard-redesign-2026-08-14/trash.png` | five-column recovery table and centered empty state |
+| Help | quick actions, shortcuts, usage notes and API references | `assets/mockups/dashboard-redesign-2026-08-14/help.png` | two-column reference layout with functional filtering |
+
+The runtime preserves real extension controls and data contracts while sharing
+a 216 px navigation rail, compact command header, graphite/emerald hierarchy,
+and consistent table/card geometry. Same-input comparison sheets pair each
+1280×800 runtime with its normalized reference under
+`assets/design-qa/dashboard-redesign-2026-08-14/`; 1920×1080 captures provide a
+secondary desktop overflow and composition check.
+
 ## Platform and Competitive Conclusions
 
 - Chrome's current `userScripts` documentation says the API is MV3-only and
@@ -160,7 +178,7 @@ state, and destructive-dialog focus order.
   clear explanation. ScriptVault's installed-profile matrix now supplies the
   missing runtime evidence: the static all-site content bridge defeats a
   manifest-only scoped conversion, while deleting it removes compatibility
-  behavior. Required `<all_urls>` remains the reviewed default for 3.29.0.
+  behavior. Required `<all_urls>` remains the reviewed default for 3.30.0.
 - Tampermonkey's explicit Save requirement for sync configuration reinforces
   the new honest persistence labels. Its per-script settings and URL overrides
   validate keeping script policy adjacent to the editor rather than burying it
@@ -217,9 +235,8 @@ Accessed 2026-08-14:
 
 ## Open Questions
 
-- Should the six manually reviewed ImageGen/runtime pairs become blocking pixel
-  baselines, or stay review artifacts to avoid churn from browser font/rendering
-  differences?
-- Which public-store claims should lead the 3.29.0 listing refresh: permission
+- Which stable regions of the six primary-route ImageGen/runtime pairs should
+  become blocking pixel baselines without introducing font-rendering churn?
+- Which public-store claims should lead the 3.30.0 listing refresh: permission
   clarity, recovery/trust, or authoring depth? Publication remains a maintainer
   decision.

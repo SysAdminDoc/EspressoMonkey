@@ -11,6 +11,21 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
+    '3.30.0': {
+      title: 'ScriptVault 3.30.0 — One Coherent Workbench',
+      date: '2026-08-14',
+      summary: 'This release gives every primary dashboard destination the same focused local-first shell, with clearer empty states, stronger tables, and more direct tools.',
+      highlights: [
+        { icon: 'FLOW', title: 'Six Routes, One System', desc: 'Scripts, Updates, Settings, Utilities, Trash, and Help now share the same rail, command header, spacing rhythm, typography, and compact action language.' },
+        { icon: 'SAFE', title: 'The Vault Explains Itself', desc: 'Empty libraries, update queues, and trash views now keep their next action and local-first privacy posture visible without decorative clutter.' },
+        { icon: 'FLOW', title: 'Operations Stay Scannable', desc: 'Backup, cloud, export, recovery, shortcuts, and API references use structured desktop layouts that preserve the existing controls and handlers.' },
+      ],
+      improvements: [
+        'The screenshot harness now waits for the script library to settle and clears incidental focus before capture, eliminating first-frame and focus-ring drift.',
+        'Trash rows expose script size alongside deletion and expiry details.',
+        'Core settings show concise descriptions beside the autosaving switches.',
+      ],
+    },
     '3.29.0': {
       title: 'ScriptVault 3.29.0 — Settings That Explain Themselves',
       date: '2026-08-13',

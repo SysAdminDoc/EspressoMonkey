@@ -2,7 +2,30 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
-## [v3.29.0] — Settings clarity, recovery, and deterministic evidence (2026-08-14)
+## [v3.30.0] — One coherent desktop workbench (2026-08-14)
+
+- Reimagined and implemented all six primary dashboard destinations—Scripts,
+  Updates, Settings, Utilities, Trash, and Help—from a coherent set of
+  ImageGen desktop references while preserving the existing controls, routes,
+  settings keys, persistence behavior, and local-first product semantics.
+- Unified the product shell around a 216 px navigation rail, compact command
+  header, restrained graphite/emerald surfaces, consistent hairlines and
+  radii, and desktop-first information density across 1280×800 and 1920×1080.
+- Clarified empty-library and current-update states, added visible explanatory
+  copy to core settings toggles, surfaced script size in Trash, and made the
+  local-only default explicit in the persistent rail footer.
+- Reworked Utilities into scannable backup, cloud-sync, restore/import, and
+  schedule regions; reorganized Help into quick actions, shortcuts, usage
+  notes, and API-reference columns without inventing unsupported operations.
+- Extended deterministic screenshot capture with explicit desktop viewport
+  and output-suffix arguments, a script-library readiness wait, and removal of
+  incidental focus before capture. The harness still fails on unsolicited
+  external HTTP(S) requests.
+- Added same-viewport mockup/runtime comparison artifacts and refreshed the
+  dark, light, Catppuccin, and OLED browser visual-regression baselines for the
+  new shell.
+
+### Included from the unreleased v3.29.0 candidate — Settings clarity, recovery, and deterministic evidence (2026-08-14)
 
 - Reorganized the complete desktop settings surface into persistent Core,
   Workspace, Automation, Security, and Recovery destinations while keeping

@@ -208,7 +208,7 @@ describe("accessibility surface pass", () => {
   test("premium polish layer keeps state feedback explicit across surfaces", () => {
     expect(dashboardHtml).toContain("Premium cohesion pass (v3.12)");
     expect(dashboardHtml).toContain("--premium-state-transition");
-    expect(dashboardHtml).toContain("Your vault is empty");
+    expect(dashboardHtml).toContain("Your vault is ready");
     expect(dashboardJs).toContain("No scripts match this view");
     expect(dashboardJs).toContain("function enhanceSettingsPanelSemantics");
     expect(dashboardJs).toContain("function syncSettingsSectionErrorStates");

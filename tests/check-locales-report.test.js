@@ -133,29 +133,29 @@ describe('scripts/check-locales.mjs', () => {
     const report = runReport();
     const expectedCoverage = {
       de: { translated: 140, coveragePercent: 6.8 },
-      es: { translated: 141, coveragePercent: 6.9 },
+      es: { translated: 141, coveragePercent: 6.8 },
       fr: { translated: 136, coveragePercent: 6.6 },
-      he: { translated: 151, coveragePercent: 7.4 },
+      he: { translated: 151, coveragePercent: 7.3 },
       ja: { translated: 164, coveragePercent: 8 },
       pt: { translated: 139, coveragePercent: 6.8 },
       ru: { translated: 210, coveragePercent: 10.2 },
-      zh: { translated: 141, coveragePercent: 6.9 },
+      zh: { translated: 141, coveragePercent: 6.8 },
     };
-    expect(report.sources.englishRuntimeKeyCount).toBe(2054);
+    expect(report.sources.englishRuntimeKeyCount).toBe(2059);
     expect(report.coverage.find(entry => entry.locale === 'en')).toMatchObject({ status: 'complete', percent: 100 });
     expect(report.coverage.find(entry => entry.locale === 'he')).toMatchObject({
       status: 'partial',
       direction: 'rtl',
       translated: 151,
-      englishKeyCount: 2054,
-      coveragePercent: 7.4,
-      baselinePercent: 7.4,
+      englishKeyCount: 2059,
+      coveragePercent: 7.3,
+      baselinePercent: 7.3,
     });
     expect(report.warnings).toHaveLength(8);
     for (const w of report.warnings) {
       expect(w).toHaveProperty('translated');
       expect(w).toHaveProperty('total');
-      expect(w).toHaveProperty('englishKeyCount', 2054);
+      expect(w).toHaveProperty('englishKeyCount', 2059);
       expect(w).toHaveProperty('baseline');
       expect(w).toHaveProperty('coveragePercent');
       expect(w).toHaveProperty('baselinePercent');

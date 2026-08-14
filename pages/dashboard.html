@@ -7515,6 +7515,7 @@
         }
     </style>
     <link rel="stylesheet" href="dashboard-workbench.css">
+    <link rel="stylesheet" href="dashboard-parity.css">
 </head>
 <body>
     <!-- Accessibility: Skip to main content -->
@@ -7633,32 +7634,32 @@
             </nav>
             <div class="sv-rail-section" aria-label="System tools">
                 <span class="sv-rail-section-title">System</span>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="backup" aria-pressed="false">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="backup" aria-pressed="false" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">R</span>
                     <span>Sync &amp; Backup</span>
                     <span class="sv-status-dot good" aria-hidden="true"></span>
                 </button>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="import" aria-pressed="false">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="import" aria-pressed="false" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">I</span>
                     <span>Import / Export</span>
                 </button>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="diagnostics" aria-pressed="false">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="diagnostics" aria-pressed="false" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">L</span>
                     <span>Logs</span>
                 </button>
             </div>
             <div class="sv-rail-section" aria-label="Trust tools">
                 <span class="sv-rail-section-title">Trust</span>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="diagnostics" data-workbench-target="signingTrustSection" aria-pressed="false" aria-label="Trusted Sources" title="Trusted Sources">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="utilities" data-workbench-filter="diagnostics" data-workbench-target="signingTrustSection" aria-pressed="false" aria-label="Trusted Sources" title="Trusted Sources" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">T</span>
                     <span>Trusted Sources</span>
                     <span class="sv-status-dot good" aria-hidden="true"></span>
                 </button>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="settings" data-workbench-filter="security" data-workbench-target="runtimeHostPermissionsSection" aria-pressed="false" aria-label="Permissions" title="Permissions">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="settings" data-workbench-filter="security" data-workbench-target="runtimeHostPermissionsSection" aria-pressed="false" aria-label="Permissions" title="Permissions" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">P</span>
                     <span>Permissions</span>
                 </button>
-                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="settings" data-workbench-filter="security" data-workbench-target="pageAccessSettingsRow" aria-pressed="false" aria-label="Domain Access" title="Domain Access">
+                <button type="button" class="sv-rail-item sv-rail-subitem" data-workbench-tab="settings" data-workbench-filter="security" data-workbench-target="pageAccessSettingsRow" aria-pressed="false" aria-label="Domain Access" title="Domain Access" tabindex="-1">
                     <span class="sv-rail-icon" aria-hidden="true">D</span>
                     <span>Domain Access</span>
                 </button>
@@ -7670,7 +7671,10 @@
             </div>
             <div class="sv-rail-footer">
                 <span class="sv-sync-dot" aria-hidden="true"></span>
-                <span data-i18n="workbenchLocalFirstVault">Local-first vault</span>
+                <span class="sv-rail-footer-copy">
+                    <strong data-i18n="workbenchLocalFirstVault">Local-first vault</strong>
+                    <small data-i18n="emptyVaultLocalOnly">Nothing leaves this browser unless you enable sync.</small>
+                </span>
             </div>
         </aside>
         <main class="tm-content sv-workbench-main" role="main" id="mainContent" tabindex="-1">
@@ -7873,8 +7877,8 @@
                 </table>
                 <div id="emptyState" class="empty-state" role="status" aria-live="polite" aria-atomic="true" style="display:none">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                    <h3 id="emptyStateTitle" data-i18n="emptyVaultTitle">Your vault is empty</h3>
-                    <p id="emptyStateDescription" data-i18n="emptyVaultDescription">Create a script or import an existing userscript. ScriptVault keeps scripts local unless you enable sync or backups.</p>
+                    <h3 id="emptyStateTitle" data-i18n="emptyVaultTitle">Your vault is ready</h3>
+                    <p id="emptyStateDescription" data-i18n="emptyVaultDescription">Create your first script or bring in an existing userscript.</p>
                     <p id="emptyStateMigrationHint" class="empty-state-hint" style="display:none"></p>
                     <div class="empty-state-actions">
                         <button class="btn btn-primary" id="emptyStatePrimaryAction" type="button" data-i18n="emptyCreateScript">Create Script</button>
@@ -8085,14 +8089,13 @@
                         <span class="help-icon" title="Beginner mode hides advanced options" data-i18n-title="settingsConfigModeHelp">?</span>
                     </div>
                     <div class="setting-row">
-                        <label><input type="checkbox" id="settingsAutoReload" checked> <span data-i18n="settingsAutoReloadPages">Auto reload pages</span></label>
-                        <span class="help-icon" title="Automatically reload the active page when a script changes" data-i18n-title="settingsAutoReloadHelp">?</span>
+                        <label><input type="checkbox" id="settingsAutoReload" checked> <span data-i18n="settingsAutoReloadPages">Auto reload pages</span><small class="setting-help-copy" data-i18n="settingsAutoReloadHelp">Automatically reload the active page when a script changes</small></label>
                     </div>
                     <div class="setting-row">
-                        <label><input type="checkbox" id="settingsDebugMode"> <span data-i18n="settingsDebugScripts">Debug scripts</span></label>
+                        <label><input type="checkbox" id="settingsDebugMode"> <span data-i18n="settingsDebugScripts">Debug scripts</span><small class="setting-help-copy" data-i18n="settingsDebugScriptsDescription">Enable console logs and debugging helpers.</small></label>
                     </div>
                     <div class="setting-row">
-                        <label><input type="checkbox" id="settingsShowFixedSource"> <span data-i18n="settingsShowFixedSource">Show fixed source</span></label>
+                        <label><input type="checkbox" id="settingsShowFixedSource"> <span data-i18n="settingsShowFixedSource">Show fixed source</span><small class="setting-help-copy" data-i18n="settingsShowFixedSourceDescription">Display repaired metadata and source when available.</small></label>
                     </div>
                     <div class="setting-row">
                         <span class="label-text" data-i18n="settingsLoggingLevelLabel">Logging Level:</span>
@@ -9575,6 +9578,7 @@ https://vscode.dev/?connectTo=tampermonkey</textarea>
                         <span>Script</span>
                         <span>Deleted</span>
                         <span>Expires</span>
+                        <span>Size</span>
                         <span>Actions</span>
                     </div>
                     <div id="trashList" class="trash-list" aria-live="polite"></div>

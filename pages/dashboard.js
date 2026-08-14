@@ -2125,6 +2125,7 @@
         // Help button (header icon)
         elements.btnHelpTab = document.getElementById('btnHelpTab');
         elements.btnCycleTheme = document.getElementById('btnCycleTheme');
+        elements.helpPanel = document.getElementById('helpPanel');
         elements.helpActionSummary = document.getElementById('helpActionSummary');
         elements.helpVisibleSummary = document.getElementById('helpVisibleSummary');
         elements.helpThemeSummary = document.getElementById('helpThemeSummary');
@@ -4014,8 +4015,8 @@
             safeSetHtml(elements.pendingUpdatesList, `
                 <div class="pending-updates-empty" role="status" aria-live="polite">
                     <span class="pending-updates-empty-mark" aria-hidden="true">OK</span>
-                    <strong>${escapeHtml(tDashboard('updatesCurrentTitle', 'Your scripts are up to date'))}</strong>
-                    <span>${escapeHtml(tDashboard('updatesCurrentDescription', 'Nothing is waiting for review. Check again whenever you want to refresh remote sources.'))}</span>
+                    <strong>${escapeHtml(tDashboard('updatesCurrentTitle', 'Everything is current'))}</strong>
+                    <span>${escapeHtml(tDashboard('updatesCurrentDescription', 'There are no updates waiting for review.'))}</span>
                     <button type="button" class="toolbar-btn" data-empty-check-updates>${escapeHtml(tDashboard('checkNow', 'Check now'))}</button>
                 </div>
             `);
@@ -7921,6 +7922,10 @@
         const query = normalizeSettingsLabel(elements.helpQuickFilter?.value || '');
         let visibleCount = 0;
 
+        if (elements.helpPanel) {
+            elements.helpPanel.dataset.helpFilter = state.helpPanelFilter;
+        }
+
         sections.forEach(section => {
             const group = section.dataset.helpGroup || 'reference';
             const matchesGroup = state.helpPanelFilter === 'all' || group === state.helpPanelFilter;
@@ -8171,9 +8176,7 @@
                     : tDashboard('trashEmptyTitle', 'Trash is empty'),
                 retentionLabel === tDashboard('trashRetentionDisabled', 'Disabled')
                     ? tDashboard('trashEmptyDisabledDescription', 'Deleted scripts bypass recovery while this policy is off.')
-                    : tDashboard('trashEmptyDescriptionWithRetention', 'Deleted scripts will stay here for {retention} before permanent cleanup.', {
-                        retention: retentionLabel
-                    })
+                    : tDashboard('trashEmptyDescription', 'Deleted scripts will appear here when recovery is available.')
             );
             return;
         }
@@ -8198,6 +8201,7 @@
             const deletedLabel = deletedAt ? formatRelativeTimeLabel(deletedAt) : tDashboard('unknown', 'Unknown');
             const deletedExact = deletedAt ? dateTimeFormatter.format(new Date(deletedAt)) : tDashboard('unknownTime', 'Unknown time');
             const purgeLabel = formatTrashPurgeDate(script);
+            const sizeLabel = formatBytes((script.code || '').length);
             const scriptIdAttr = escapeHtml(script.id);
             const item = document.createElement('article');
             item.className = 'trash-item';
@@ -8214,6 +8218,7 @@
                     <strong>${purgeLabel ? escapeHtml(purgeLabel) : '—'}</strong>
                     <span class="trash-item-purge">${purgeLabel ? escapeHtml(tDashboard('trashAutoDeleteOn', 'Will auto-delete on {date}', { date: purgeLabel })) : escapeHtml(tDashboard('trashNoAutoDelete', 'No automatic deletion scheduled'))}</span>
                 </div>
+                <div class="trash-item-size">${escapeHtml(sizeLabel)}</div>
                 <div class="trash-item-actions">
                     <button type="button" class="btn" data-trash-restore="${scriptIdAttr}">${escapeHtml(tDashboard('restoreAction', 'Restore'))}</button>
                     <button type="button" class="btn btn-danger" data-trash-delete="${scriptIdAttr}">${escapeHtml(tDashboard('deleteForever', 'Delete Forever'))}</button>
@@ -9108,11 +9113,11 @@
         }
 
         if (!hasScripts) {
-            if (elements.emptyStateTitle) elements.emptyStateTitle.textContent = tDashboard('emptyVaultTitle', 'Your vault is empty');
+            if (elements.emptyStateTitle) elements.emptyStateTitle.textContent = tDashboard('emptyVaultTitle', 'Your vault is ready');
             if (elements.emptyStateDescription) {
                 elements.emptyStateDescription.textContent = tDashboard(
                     'emptyVaultDescription',
-                    'Create a script or import an existing userscript. ScriptVault keeps scripts local unless you enable sync or backups.'
+                    'Create your first script or bring in an existing userscript.'
                 );
             }
             if (elements.emptyStatePrimaryAction) {
