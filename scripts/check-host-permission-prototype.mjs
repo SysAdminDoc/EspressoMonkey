@@ -34,7 +34,18 @@ export function buildOptionalHostPrototype(manifest) {
   prototype.__scriptvault_prototype = {
     notShipping: true,
     movedFromRequiredHostPermissions: ['<all_urls>'],
-    purpose: 'Validate optional HTTP(S) host grants before changing the default store manifest.',
+    purpose: 'Measure optional HTTP(S) host grants without changing the store manifest.',
+  };
+  return prototype;
+}
+
+export function buildStrictOptionalHostPrototype(manifest) {
+  const prototype = buildOptionalHostPrototype(manifest);
+  delete prototype.content_scripts;
+  prototype.__scriptvault_prototype = {
+    ...prototype.__scriptvault_prototype,
+    removedForIsolation: ['content_scripts <all_urls>'],
+    purpose: 'Measure genuinely withheld host access and the compatibility cost of removing the static bridge.',
   };
   return prototype;
 }
@@ -48,40 +59,33 @@ function hasWebAccessibleAllUrls(manifest) {
 }
 
 function analyzeTarget(name, manifest) {
-  const prototype = buildOptionalHostPrototype(manifest);
+  const retainedBridge = buildOptionalHostPrototype(manifest);
+  const strictOptional = buildStrictOptionalHostPrototype(manifest);
   const permissions = new Set(manifest.permissions || []);
   const optionalPermissions = new Set(manifest.optional_permissions || []);
   const shippingHostPermissions = new Set(manifest.host_permissions || []);
-  const shippingOptionalHosts = new Set(manifest.optional_host_permissions || []);
-  const prototypeOptionalHosts = new Set(prototype.optional_host_permissions || []);
+  const prototypeOptionalHosts = new Set(retainedBridge.optional_host_permissions || []);
   const failures = [];
 
-  if (name === 'Firefox') {
-    if (!shippingHostPermissions.has('<all_urls>')) {
-      failures.push(`${name} shipping manifest no longer declares required <all_urls>; update Firefox reviewer copy together.`);
-    }
-  } else {
-    if (shippingHostPermissions.has('<all_urls>')) {
-      failures.push(`${name} shipping manifest still declares required <all_urls>.`);
-    }
-    for (const pattern of OPTIONAL_HOST_PATTERNS) {
-      if (!shippingOptionalHosts.has(pattern)) {
-        failures.push(`${name} shipping manifest is missing optional_host_permissions ${pattern}.`);
-      }
-    }
+  if (!shippingHostPermissions.has('<all_urls>')) {
+    failures.push(`${name} shipping manifest no longer matches the reviewed required-<all_urls> compatibility policy.`);
   }
   for (const pattern of OPTIONAL_HOST_PATTERNS) {
     if (!prototypeOptionalHosts.has(pattern)) {
       failures.push(`${name} prototype is missing optional_host_permissions ${pattern}.`);
     }
   }
-  if ((prototype.host_permissions || []).includes('<all_urls>')) {
-    failures.push(`${name} prototype still has required <all_urls>.`);
+  if ((retainedBridge.host_permissions || []).includes('<all_urls>')
+      || (strictOptional.host_permissions || []).includes('<all_urls>')) {
+    failures.push(`${name} optional-host prototype still has required <all_urls>.`);
   }
-  if (!hasContentScriptAllUrls(manifest) || !hasContentScriptAllUrls(prototype)) {
-    failures.push(`${name} content-script <all_urls> match drifted; .user.js install and bridge coverage need a separate prototype.`);
+  if (!hasContentScriptAllUrls(manifest) || !hasContentScriptAllUrls(retainedBridge)) {
+    failures.push(`${name} shipping/retained-bridge shape lost the static .user.js bridge unexpectedly.`);
   }
-  if (hasWebAccessibleAllUrls(manifest) || hasWebAccessibleAllUrls(prototype)) {
+  if (hasContentScriptAllUrls(strictOptional)) {
+    failures.push(`${name} strict optional prototype still has a broad static content-script match.`);
+  }
+  if (hasWebAccessibleAllUrls(manifest) || hasWebAccessibleAllUrls(retainedBridge) || hasWebAccessibleAllUrls(strictOptional)) {
     failures.push(`${name} should not expose install.html as a web-accessible <all_urls> resource.`);
   }
 
@@ -96,12 +100,14 @@ function analyzeTarget(name, manifest) {
 
   return {
     name,
-    prototype,
+    retainedBridge,
+    strictOptional,
     checks: {
-      shippingRequiredAllUrls: (manifest.host_permissions || []).includes('<all_urls>'),
+      shippingRequiredAllUrls: shippingHostPermissions.has('<all_urls>'),
       optionalHttpHosts: OPTIONAL_HOST_PATTERNS.every(pattern => prototypeOptionalHosts.has(pattern)),
-      contentScriptBridge: hasContentScriptAllUrls(prototype),
-      installPagePrivate: !hasWebAccessibleAllUrls(prototype),
+      retainedBroadBridge: hasContentScriptAllUrls(retainedBridge),
+      strictBridgeRemoved: !hasContentScriptAllUrls(strictOptional),
+      installPagePrivate: !hasWebAccessibleAllUrls(strictOptional),
       userScriptsReady,
       dnrReady,
       downloadReady,
@@ -129,20 +135,27 @@ export function renderReport({ chromeManifest, firefoxManifest, privacy, storeCo
 
   const rows = analyses.map(result => {
     const c = result.checks;
-    return `| ${result.name} | ${passLabel(result.name === 'Firefox' ? c.shippingRequiredAllUrls : !c.shippingRequiredAllUrls)} | ${passLabel(c.optionalHttpHosts)} | ${passLabel(c.contentScriptBridge && c.installPagePrivate)} | ${passLabel(c.userScriptsReady)} | ${passLabel(c.dnrReady && c.downloadReady && c.cookiesReady)} |`;
+    return `| ${result.name} | ${passLabel(c.shippingRequiredAllUrls)} | ${passLabel(c.optionalHttpHosts)} | ${c.retainedBroadBridge ? 'blocked: broad bridge remains' : 'pass'} | ${passLabel(c.strictBridgeRemoved && c.installPagePrivate)} | ${passLabel(c.userScriptsReady && c.dnrReady && c.downloadReady && c.cookiesReady)} |`;
   }).join('\n');
 
   const examples = analyses.map(result => {
-    const prototype = result.prototype;
+    const retained = result.retainedBridge;
+    const strict = result.strictOptional;
     return [
-      `### ${result.name} Prototype Shape`,
+      `### ${result.name} Prototype Shapes`,
       '',
       '```json',
       JSON.stringify({
-        host_permissions: prototype.host_permissions || [],
-        optional_host_permissions: prototype.optional_host_permissions || [],
-        content_scripts: (prototype.content_scripts || []).map(script => ({ matches: script.matches || [] })),
-        web_accessible_resources: (prototype.web_accessible_resources || []).map(block => ({ matches: block.matches || [] })),
+        retainedBridge: {
+          host_permissions: retained.host_permissions || [],
+          optional_host_permissions: retained.optional_host_permissions || [],
+          content_scripts: (retained.content_scripts || []).map(script => ({ matches: script.matches || [] })),
+        },
+        strictOptional: {
+          host_permissions: strict.host_permissions || [],
+          optional_host_permissions: strict.optional_host_permissions || [],
+          content_scripts: strict.content_scripts || [],
+        },
       }, null, 2),
       '```',
     ].join('\n');
@@ -152,22 +165,28 @@ export function renderReport({ chromeManifest, firefoxManifest, privacy, storeCo
     failures,
     text: `# Host Permission Recovery Prototype
 
-This report is generated by \`npm run host-permissions:prototype\`. Chrome ships optional HTTP(S) host permissions; Firefox keeps required \`<all_urls>\` until browser smoke evidence supports the same default-manifest change there.
+This report is generated by \`npm run host-permissions:prototype\`. Chrome and Firefox both ship required \`<all_urls>\` for compatibility. The optional-host manifests below are test-only shapes and are not store defaults.
+
+## Shipping Decision
+
+Retain required \`<all_urls>\`. Installed-profile Chromium testing shows that moving only \`host_permissions\` to optional is not genuinely scoped: the static \`content_scripts.matches: ["<all_urls>"]\` bridge remains a broad scriptable host and still enables cross-origin extension fetches even while \`chrome.permissions.contains({ origins })\` reports the explicit host as withheld. Removing that bridge creates a genuinely withheld profile, but also removes the current .user.js/content compatibility bridge.
+
+The strict prototype does pass granted-host userscript registration, update URL, \`@require\`, \`@resource\`, \`@connect\`, DNR, cookie, download, and universal-script approval smoke coverage. It is not ready to ship until those bridge responsibilities are redesigned and the native first-grant prompt is manually validated.
 
 ## Prototype Gate
 
-| Target | Shipping host model current | Optional HTTP(S) hosts staged | Bridge retained / install page private | userScripts covered | GM DNR/download/cookie coverage |
+| Target | Shipping required host current | Optional HTTP(S) hosts staged | Retained-bridge isolation | Strict bridge removal / install page private | userScripts + privileged GM coverage |
 |---|---|---|---|---|---|
 ${rows}
 
 Reviewer copy status: ${reviewerCopyReady ? 'pass' : 'fail'}.
 
-## Validation Scope
+## Reproduce
 
-- Detect withheld current-site access before presenting script rows as runnable.
-- Provide a Chrome host-access-request recovery path when available and a standard \`permissions.request({ origins })\` fallback.
-- Keep Firefox grant/revoke behavior observable through permissions events.
-- Keep Firefox changes out of release manifests until sideload smoke passes for userScripts registration, \`@require\` fetches, DNR rules, cookie access, and downloads under optional HTTP(S) host grants.
+- \`npm run host-permissions:prototype:check\` validates the shipping/prototype contract and reviewer copy.
+- \`npm run host-permissions:matrix\` builds the extension and runs the isolated Chromium installed-profile matrix.
+- The browser matrix writes \`release-artifacts/host-permission-matrix.json\` with the browser version, lifecycle evidence, product-flow results, and all assertions.
+- Chromium's native first-time optional-host permission prompt remains a manual review surface; automation covers a real persisted grant, denial/withheld state, gesture confirmation, and revoke without editing protected profile preferences.
 
 ${examples}
 `,
@@ -193,11 +212,11 @@ function main() {
   const outPath = resolve(ROOT, OUTPUT);
   const current = existsSync(outPath) ? readFileSync(outPath, 'utf8') : '';
   if (check) {
-    if (current !== report.text) {
+    if (current && current !== report.text) {
       console.error(`${OUTPUT} is stale. Run npm run host-permissions:prototype.`);
       process.exit(1);
     }
-    console.log('Host permission prototype report is current.');
+    console.log(`Host permission prototype contract passed${current ? ' and the local report is current' : ''}.`);
     return;
   }
 

@@ -209,8 +209,8 @@
     "scopedHostPermissions": {
       "type": "boolean",
       "control": "checkbox",
-      "label": "Use scoped host permissions",
-      "help": "Requests browser access only for a script's declared run, update, dependency, and connect hosts. Broad all-site scripts require per-script approval.",
+      "label": "Require approval for all-site scripts",
+      "help": "Adds a ScriptVault registration guard for universal scripts. The current compatibility manifest still has all-site browser access, so this does not reduce the extension's installed site permission.",
       "elementId": "settingsScopedHostPermissions",
       "default": false
     },

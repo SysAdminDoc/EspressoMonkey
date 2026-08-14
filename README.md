@@ -416,16 +416,16 @@ Artifacts are written to `firefox-artifacts/`: the Firefox package ZIP, a source
 ## Browser Support Matrix
 
 <!-- SCRIPT_VAULT_BROWSER_SUPPORT_MATRIX:START -->
-_Last generated: 2026-08-13 with `npm run support:matrix`. Version source: `manifest.json` / `manifest-firefox.json` 3.29.0._
+_Last generated: 2026-08-14 with `npm run support:matrix`. Version source: `manifest.json` / `manifest-firefox.json` 3.29.0._
 
 _Chromium cadence note: Chrome moves to a 14-day stable cadence at M153 (2026-09-08), or about 26 milestones per year. ScriptVault supports M130+; measured against M153, that is a 23-milestone / approximately 11-month calendar window, expressed as an explicit milestone floor rather than a rolling last-N assumption._
 
 | Browser | Support level | Tested version / target | Last successful verification | Verification evidence | Unsupported or deferred APIs |
 |---|---|---|---|---|---|
-| Chrome / Chromium | Tier 1 published target | Chrome 130+ MV3 | 2026-08-13 | `npm run smoke:dashboard`, `npm run cws:check`, local Chrome ZIP packaging with `bash build.sh` | Chrome 138+ requires per-extension Allow User Scripts; current-site recovery uses Chrome 133+ `permissions.addHostAccessRequest` when available and falls back to `permissions.request({ origins })`; per-script `worldId` is Chrome 133+ and feature-gated |
-| Microsoft Edge | Tier 1 compatible package; Partner Center publication manual | Edge 130+ Chromium MV3 package | 2026-08-13 generated package/report; local Edge smoke command is available but has no current evidence | `npm run build:edge:check`, `edge-artifacts/scriptvault-edge-v3.29.0.zip`, `edge-artifacts/edge-build-3.29.0.json`, `npm run smoke:edge`, `edge-artifacts/edge-smoke-3.29.0.json`; local release attaches `edge-artifacts/*` manually | Manual Partner Center upload remains required until a live Edge Add-ons listing exists; Microsoft Edge Add-ons REST update automation is deferred until listing identifiers and publisher credentials are provisioned; Dedicated local Edge sideload smoke is wired via npm run smoke:edge; release readiness requires a maintainer to run that command on Microsoft Edge |
-| Firefox Desktop | AMO validation target, not a published listing | Firefox 140.0+ MV3 | 2026-08-13 | `npm run firefox:package`, `npm run smoke:firefox`; web-ext lint 0 errors / 0 notices / 59 warnings | `sidePanel`, `offscreen`, `identity` OAuth, and some `userScripts.execute` flows are unsupported/deferred; host grant/revoke diagnostics listen to permissions events; Firefox package omits Monaco until the Firefox editor-loading pass |
-| Firefox for Android | Deferred; not an AMO compatibility target | No current `gecko_android` manifest target | 2026-08-13 | `manifest-firefox.json` intentionally omits `gecko_android` until an Android smoke gate exists | Android UI/runtime, extension-action overlay, host-permission, import/export, and WebDAV paths are unverified |
+| Chrome / Chromium | Tier 1 published target | Chrome 130+ MV3 | 2026-08-14 | `npm run smoke:dashboard`, `npm run cws:check`, local Chrome ZIP packaging with `bash build.sh` | Chrome 138+ requires per-extension Allow User Scripts; current-site recovery uses Chrome 133+ `permissions.addHostAccessRequest` when available and falls back to `permissions.request({ origins })`; per-script `worldId` is Chrome 133+ and feature-gated |
+| Microsoft Edge | Tier 1 compatible package; Partner Center publication manual | Edge 130+ Chromium MV3 package | 2026-08-14 generated package/report; local Edge smoke command is available but has no current evidence | `npm run build:edge:check`, `edge-artifacts/scriptvault-edge-v3.29.0.zip`, `edge-artifacts/edge-build-3.29.0.json`, `npm run smoke:edge`, `edge-artifacts/edge-smoke-3.29.0.json`; local release attaches `edge-artifacts/*` manually | Manual Partner Center upload remains required until a live Edge Add-ons listing exists; Microsoft Edge Add-ons REST update automation is deferred until listing identifiers and publisher credentials are provisioned; Dedicated local Edge sideload smoke is wired via npm run smoke:edge; release readiness requires a maintainer to run that command on Microsoft Edge |
+| Firefox Desktop | AMO validation target, not a published listing | Firefox 140.0+ MV3 | 2026-08-14 | `npm run firefox:package`, `npm run smoke:firefox`; web-ext lint 0 errors / 0 notices / 59 warnings | `sidePanel`, `offscreen`, `identity` OAuth, and some `userScripts.execute` flows are unsupported/deferred; host grant/revoke diagnostics listen to permissions events; Firefox package omits Monaco until the Firefox editor-loading pass |
+| Firefox for Android | Deferred; not an AMO compatibility target | No current `gecko_android` manifest target | 2026-08-14 | `manifest-firefox.json` intentionally omits `gecko_android` until an Android smoke gate exists | Android UI/runtime, extension-action overlay, host-permission, import/export, and WebDAV paths are unverified |
 | Brave / Vivaldi / Opera / Arc | Chromium derivative local-smoke targets | Chrome 130+ compatible package | Not release-verified | `npm run smoke:derivatives`, `chromium-derivative-artifacts/summary-3.29.0.json` | store policy, shields/sidebar behavior, and extension UI chrome remain browser-specific |
 | Orion / Safari | Not supported | Not a current target | Not verified | No build, smoke, or package path | Requires separate WebKit/Orion validation and likely native Safari extension work |
 <!-- SCRIPT_VAULT_BROWSER_SUPPORT_MATRIX:END -->
@@ -434,16 +434,18 @@ _Chromium cadence note: Chrome moves to a 14-day stable cadence at M153 (2026-09
 
 ## Permission and Privacy Review
 
-ScriptVault requests broad site access (`<all_urls>`) on Chrome, Edge, and Firefox so installed userscripts can run immediately wherever their metadata allows. Users who prefer per-site grants can opt into **Use scoped host permissions** under Settings → Security; ScriptVault then derives the narrower HTTP(S) grants from each script's run, update, dependency, and `@connect` hosts. The reviewer-facing permission justifications live in [docs/store-listing-copy.md](docs/store-listing-copy.md), the CWS remote-code review memo lives in [docs/cws-remote-code-compliance.md](docs/cws-remote-code-compliance.md), and the privacy policy keeps the same manifest inventory in [PRIVACY.md](PRIVACY.md).
+ScriptVault requests broad site access (`<all_urls>`) on Chrome, Edge, and Firefox so installed userscripts can run immediately wherever their metadata allows. **Require approval for all-site scripts** under Settings → Security adds a ScriptVault registration guard for universal scripts; it does not revoke the extension's compatibility-wide browser permission. An isolated installed-profile matrix confirmed that moving only `host_permissions` to optional leaves the static `<all_urls>` content bridge broadly scriptable, while removing that bridge drops current install/compatibility behavior. The reviewer-facing permission justifications live in [docs/store-listing-copy.md](docs/store-listing-copy.md), the CWS remote-code review memo lives in [docs/cws-remote-code-compliance.md](docs/cws-remote-code-compliance.md), and the privacy policy keeps the same manifest inventory in [PRIVACY.md](PRIVACY.md).
 
 Before release, run:
 
 ```bash
 npm run store-copy:check
 npm run cws:remote-code:check
+npm run host-permissions:prototype:check
+npm run host-permissions:matrix
 ```
 
-These checks compare `manifest.json` and `manifest-firefox.json` against the privacy policy, store copy, release runbook, package scripts, local release gates, and the CWS remote-code scanner so a new permission or remote-code-capable path cannot ship without matching reviewer evidence.
+These checks compare `manifest.json` and `manifest-firefox.json` against the privacy policy, store copy, host-access model, release runbook, package scripts, local release gates, and the CWS remote-code scanner so a new permission, host-access change, or remote-code-capable path cannot ship without matching reviewer evidence.
 
 ---
 

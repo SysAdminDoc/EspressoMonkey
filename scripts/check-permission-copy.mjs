@@ -97,6 +97,13 @@ const readme = readText(readmePath);
 const amoSourceReadme = readText(amoSourceReadmePath);
 const failures = [];
 
+function inventoryEntries(text) {
+  const entries = new Set();
+  const rowPattern = /^\|\s*(permission|optional_permission|host_permission|content_script_match|web_accessible_match|web_accessible_resource|sandbox_page|data_collection_required|data_collection_optional)\s*\|\s*`([^`]+)`\s*\|/gm;
+  for (const match of text.matchAll(rowPattern)) entries.add(`${match[1]}:${match[2]}`);
+  return entries;
+}
+
 for (const entry of manifestEntries.values()) {
   const catalogEntry = catalogByKey.get(entry.key);
   if (!catalogEntry) {
@@ -118,6 +125,14 @@ for (const entry of manifestEntries.values()) {
   }
 }
 
+for (const [path, text] of [[privacyPath, privacy], [storeCopyPath, storeCopy]]) {
+  for (const key of inventoryEntries(text)) {
+    if (!manifestEntries.has(key)) {
+      failures.push(`${path} documents stale manifest surface ${key}`);
+    }
+  }
+}
+
 const readmeNeedles = [
   'Permission and Privacy Review',
   'docs/store-listing-copy.md',
@@ -133,7 +148,7 @@ for (const needle of readmeNeedles) {
 
 const amoSourceReadmeNeedles = [
   'Reviewer Build Instructions',
-  'npm run firefox:package',
+  'npm run build-for-amo',
   'scriptvault-firefox-v<version>.zip',
   'scriptvault-firefox-source-v<version>.zip',
   'AMO Data Collection Copy',

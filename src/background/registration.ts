@@ -887,6 +887,11 @@ export async function registerScript(
         throw new Error(ruleResult.error || 'GM_webRequest rule rejected');
       }
     }
+
+    if (script.settings?._registrationError) {
+      delete script.settings._registrationError;
+      await ScriptStorage.set(script.id, script);
+    }
   } catch (e: unknown) {
     console.error(`[ScriptVault] Failed to register ${script.meta?.name || script.id}:`, e);
     // Mark script with registration failure for UI display

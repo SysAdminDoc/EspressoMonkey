@@ -4,22 +4,6 @@ Actionable work only. Historical and completed roadmap material is archived in C
 
 ## Actionable Items
 
-### P2 — Resolve the Chrome scoped-host default with a release matrix
-
-- **Problem:** Chrome ships required `<all_urls>` for compatibility while the
-  repository also contains an optional-host prototype and opt-in scoped-host
-  runtime. The prototype report and shipping policy must not imply opposite
-  defaults.
-- **Hook:** `scripts/check-host-permission-prototype.mjs`,
-  `settingsScopedHostPermissions`, `chrome.permissions`, and the install/update/
-  dependency/GM cookie/download smoke surfaces.
-- **Done when:** a real installed-profile matrix covers fresh install, withheld
-  access, per-origin grant/deny/revoke, `<all_urls>` scripts, update URLs,
-  `@require`/`@resource`, `@connect`, DNR, cookies, and downloads; the manifest,
-  prototype report, privacy/store copy, and tests then agree on one default.
-- **Effort/risk:** L; high store-warning and runtime-breakage risk, so do not
-  change the manifest from static analysis alone.
-
 ### P2 — Automate desktop settings visual parity
 
 - **Problem:** Six ImageGen/runtime pairs were reviewed manually at 1280×800;

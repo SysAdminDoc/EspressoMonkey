@@ -1,6 +1,6 @@
 # ScriptVault Privacy Policy
 
-**Last Updated: July 14, 2026**
+**Last Updated: August 14, 2026**
 
 ## Overview
 
@@ -105,14 +105,16 @@ As a userscript manager, ScriptVault executes JavaScript code from external sour
 | optional_permission | `userScripts` | Firefox optional grant for the `USER_SCRIPT world`. |
 | host_permission | `<all_urls>` | Host permission is required because userscripts can run on user-chosen sites across the web; each script is still limited by metadata and your controls. |
 | content_script_match | `<all_urls>` | Content script match lets ScriptVault detect `.user.js install` pages and connect the content bridge on sites where scripts may run. |
-| web_accessible_match | `<all_urls>` | Web-accessible match exposes the install confirmation page to pages that hand a `.user.js` install to ScriptVault. |
-| web_accessible_resource | `pages/install.html` | The install confirmation page is the web-accessible resource that lets you review a script before saving or running it. |
 | sandbox_page | `pages/editor-sandbox.html` | The sandboxed editor hosts Monaco so editing tools stay isolated from extension pages. |
 | data_collection_required | `none` | Required data collection is none: ScriptVault does not require telemetry, accounts, analytics, or developer-operated storage. |
 | data_collection_optional | `authenticationInfo` | Authentication info such as OAuth tokens is used only when you configure a cloud sync provider. |
 | data_collection_optional | `technicalAndInteraction` | Technical and interaction data such as settings, support exports, and error diagnostics stays local unless you choose to export or sync it. |
 | data_collection_optional | `websiteActivity` | Website activity is used locally to match installed scripts to selected pages and may leave your device only through scripts or sync/export actions you configure. |
 | data_collection_optional | `websiteContent` | Website content can be accessed by installed scripts and `GM_xmlhttpRequest`/resource flows, then sent only to URLs selected by you or by installed script metadata. |
+
+The optional **Require approval for all-site scripts** setting is a ScriptVault
+registration guard. It does not revoke the required `<all_urls>` manifest host
+permission or reduce the extension's installed browser access.
 
 The reviewer-facing store copy for the same inventory is maintained in `docs/store-listing-copy.md` and checked by `npm run store-copy:check`.
 

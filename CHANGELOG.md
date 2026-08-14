@@ -2,7 +2,7 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
-## [v3.29.0] — Settings clarity, recovery, and deterministic evidence (2026-08-13)
+## [v3.29.0] — Settings clarity, recovery, and deterministic evidence (2026-08-14)
 
 - Reorganized the complete desktop settings surface into persistent Core,
   Workspace, Automation, Security, and Recovery destinations while keeping
@@ -43,6 +43,20 @@ All notable changes to ScriptVault will be documented in this file.
 - Refreshed product research and actionable/blocked roadmaps against the public
   Chrome Web Store listing, current Chrome userScripts/permission guidance, and
   current Tampermonkey and Violentmonkey settings/recovery patterns.
+- Added a fail-closed Chromium installed-profile host-permission matrix covering
+  fresh/withheld access, persisted grants and revoke, narrow and universal
+  userscript registration, update URLs, `@require`/`@resource`, `@connect`, DNR,
+  cookies, and downloads. The evidence keeps required `<all_urls>` as the
+  compatibility default because the static all-site content bridge makes a
+  manifest-only optional-host conversion misleading.
+- Fixed real `@webRequest` registration in the generated runtime by keeping its
+  high-privilege policy helper in the raw core's scope, and cleared stale
+  registration errors after a later registration succeeds.
+- Corrected the Security setting and install-review copy so the opt-in control
+  is described as an all-site script registration guard, not as a way to revoke
+  the extension's required browser host access; removed stale web-accessible
+  install-page claims from privacy/store inventory and made that drift fail the
+  local and release gates.
 
 ## [v3.28.0] — Capability-aware runtime, safer migration & release trust (2026-08-11)
 
@@ -1137,11 +1151,10 @@ All notable changes to ScriptVault will be documented in this file.
   `host_permissions: ["<all_urls>"]`, so the extension is granted full site
   access at install instead of surfacing "Site Access Needed" per origin. This
   matches the Firefox build, which always shipped broad host access.
-- **Scoped host permissions are now opt-in.** The `scopedHostPermissions`
-  setting (and its internal registration gate) defaults to `false`. The scoped
-  per-site model is preserved for anyone who wants it — enable "Use scoped host
-  permissions" in Settings — but it no longer blocks broad all-site scripts
-  from registering by default.
+- **All-site script approval is now opt-in.** The legacy
+  `scopedHostPermissions` key (an internal registration gate) defaults to
+  `false`. Enabling it requires explicit approval before universal scripts
+  register; it does not revoke the extension's required all-site host access.
 - Fixes broad-match scripts (`@match *://*/*`, `@match <all_urls>`) being
   unregistered until manually approved per script.
 

@@ -14507,6 +14507,11 @@ async function registerScript(script: any, { useUpdate = false, throwOnError = f
         throw new Error(ruleResult?.error || 'GM_webRequest rule rejected');
       }
     }
+
+    if (script.settings?._registrationError) {
+      delete script.settings._registrationError;
+      await ScriptStorage.set(script.id, script);
+    }
   } catch (e: any) {
     console.error(`[ScriptVault] Failed to register ${script.meta?.name || script.id}:`, e);
     // Mark script with registration failure for UI display
@@ -15234,8 +15239,12 @@ function _ruleMutatesCspHeaders(rule: any) {
   return Object.keys(responseHeaders).some(_isCspHeaderName);
 }
 
+function _isHighPrivilegeScriptApiOverride(settings: any) {
+  return settings?.allowHighPrivilegeScriptApis === true;
+}
+
 function _isCspMutationAllowed(settings: any) {
-  return settings?.modifyCSP === 'yes' || isHighPrivilegeScriptApiOverride(settings);
+  return settings?.modifyCSP === 'yes' || _isHighPrivilegeScriptApiOverride(settings);
 }
 
 function _isDnrHostAllowedByScript(script: any, host: any) {
@@ -15255,7 +15264,7 @@ function _isDnrHostAllowedByScript(script: any, host: any) {
 function _validateWebRequestRulesForScript(script: any, rules: any, settings: any = {}) {
   const ruleList = Array.isArray(rules) ? rules : [];
   const scopeInfo = getScriptHostScopeInfo(script);
-  const highPrivilegeOverride = isHighPrivilegeScriptApiOverride(settings);
+  const highPrivilegeOverride = _isHighPrivilegeScriptApiOverride(settings);
   const initiatorDomains = scopeInfo.universal || highPrivilegeOverride ? [] : scopeInfo.hosts;
   if (!scopeInfo.universal && !highPrivilegeOverride && initiatorDomains.length === 0) {
     return { allowed: false, error: 'GM_webRequest requires concrete script host scope' };

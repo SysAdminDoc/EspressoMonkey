@@ -34,6 +34,7 @@ describe('credential-free release preflight', () => {
       'runtime-generation-drift',
       'unit-static-gates',
       'service-worker-boot',
+      'host-permission-matrix',
       'dependency-audit',
       'locale-drift',
       'privacy-store-copy',

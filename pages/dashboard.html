@@ -8702,8 +8702,8 @@
                         <label><input type="checkbox" id="settingsAllowHighPrivilegeScriptApis"> <span data-i18n="settingsAllowHighPrivilegeApis">Allow cross-scope privileged script APIs</span></label>
                     </div>
                     <div class="setting-row">
-                        <label><input type="checkbox" id="settingsScopedHostPermissions"> <span>Use scoped browser host permissions</span></label>
-                        <span class="help-icon" title="Requests browser access only for each script's declared run, update, dependency, and connect hosts. Scripts that ask for every site need explicit broad-access approval.">?</span>
+                        <label><input type="checkbox" id="settingsScopedHostPermissions"> <span>Require approval for all-site scripts</span></label>
+                        <span class="help-icon" title="Adds a ScriptVault registration guard for universal scripts. The current compatibility manifest still has all-site browser access, so this does not reduce the extension's installed site permission.">?</span>
                     </div>
                     <div class="setting-row">
                         <label><input type="checkbox" id="settingsOnDeviceAiEnabled"> <span>Enable on-device AI assistance</span></label>

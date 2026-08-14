@@ -194,7 +194,7 @@ const WhatsNew = (() => {
       date: '2026-07-13',
       highlights: [
         { icon: 'FLOW', title: 'Broad Host Access Restored', desc: 'On Chromium builds ScriptVault once again requests full site access at install, so your userscripts run everywhere immediately instead of stalling on a "Site Access Needed" prompt.' },
-        { icon: 'SAFE', title: 'Scoped Host Permissions Now Opt-In', desc: 'The per-site scoped host permission model is still available, but it is turned off by default. Enable "Use scoped host permissions" in Settings if you prefer granting access one origin at a time.' },
+        { icon: 'SAFE', title: 'All-Site Script Approval Is Opt-In', desc: 'The optional registration guard can require per-script approval for universal scripts. It does not revoke ScriptVault\'s compatibility-wide browser site permission.' },
       ],
       improvements: [
         'Fixes broad all-site scripts that were being unregistered until manually approved per script.',

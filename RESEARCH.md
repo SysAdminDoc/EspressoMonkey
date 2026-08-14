@@ -1,5 +1,5 @@
 # Research — ScriptVault
-Date: 2026-08-13 — replaces all prior research.
+Date: 2026-08-14 — replaces all prior research.
 
 ## Executive Summary
 
@@ -31,18 +31,28 @@ locale-aware count forms. The screenshot harness now produces deterministic 1x
 state rather than a stale Puppeteer visibility handle, honors reduced motion,
 and fails if an extension-owned surface requests an HTTP(S) resource.
 
+The Chrome host-access question is now resolved for this release. A real
+Chromium 151 installed-profile matrix compared shipping, a manifest-only
+optional-host variant, and a strict optional-host variant. The manifest-only
+variant still injected the static `<all_urls>` bridge and retained cross-origin
+fetch capability even while `chrome.permissions.contains({ origins })` reported
+the explicit host as withheld. The strict variant removed that bridge and did
+produce a withheld profile; after real grants it passed userscript registration,
+updates, `@require`, `@resource`, `@connect`, DNR, cookies, downloads, revoke,
+and universal-script approval. Required `<all_urls>` therefore remains the
+explicit compatibility default until the bridge is redesigned and the native
+first-grant UX is accepted.
+
 Priority order after this pass:
 
-1. **Next / P2:** reconcile the Chrome optional-host-permission prototype with
-   the intentionally broad shipping manifest and prove install/run/update/
-   dependency/cookie/download behavior before changing defaults.
-2. **Next / P2:** turn the six settings parity pairs into a maintained visual
+1. **Next / P2:** turn the six settings parity pairs into a maintained visual
    regression contract at the documented 1280×800 store viewport and a
    secondary 1920×1080 desktop viewport.
-3. **Blocked / P1:** publish 3.29.0 and replace stale Chrome Web Store copy and
+2. **Blocked / P1:** publish 3.29.0 and replace stale Chrome Web Store copy and
    screenshots after maintainer review.
-4. **Blocked / P2:** validate Chrome 138+ "Allow User Scripts" setup in a real
-   installed profile and run authenticated provider/browser-store matrices.
+3. **Blocked / P2:** redesign the static bridge and manually review Chromium's
+   native first-time optional-host prompt before reconsidering a scoped default.
+4. **Blocked / P2:** run authenticated provider/browser-store matrices.
 
 ## Product and Surface Map
 
@@ -147,10 +157,10 @@ state, and destructive-dialog focus order.
   checks remain more reliable than milestone-only branching.
 - Chrome recommends required permissions only for core behavior and optional
   permissions/hosts for optional features, requested with a user gesture and a
-  clear explanation. ScriptVault already has scoped-host runtime logic, but its
-  Chrome shipping manifest deliberately retains required `<all_urls>` after a
-  prior compatibility rollback. A default change needs real install/runtime
-  evidence, not a manifest-only edit.
+  clear explanation. ScriptVault's installed-profile matrix now supplies the
+  missing runtime evidence: the static all-site content bridge defeats a
+  manifest-only scoped conversion, while deleting it removes compatibility
+  behavior. Required `<all_urls>` remains the reviewed default for 3.29.0.
 - Tampermonkey's explicit Save requirement for sync configuration reinforces
   the new honest persistence labels. Its per-script settings and URL overrides
   validate keeping script policy adjacent to the editor rather than burying it
@@ -181,7 +191,7 @@ state, and destructive-dialog focus order.
 
 ## Current Sources
 
-Accessed 2026-08-13:
+Accessed 2026-08-14:
 
 - Chrome Web Store listing:
   https://chromewebstore.google.com/detail/scriptvault/jlhdbkeijcbgnonpfkfkkkhfmbeejkgh
@@ -191,6 +201,12 @@ Accessed 2026-08-13:
   https://developer.chrome.com/docs/extensions/reference/api/permissions
 - Chrome permission declaration guidance:
   https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions
+- Chrome cross-origin network requests:
+  https://developer.chrome.com/docs/extensions/develop/concepts/network-requests
+- Chrome match patterns:
+  https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
+- Chromium extension permission internals:
+  https://chromium.googlesource.com/chromium/src/+/HEAD/extensions/docs/permissions.md
 - Tampermonkey documentation:
   https://www.tampermonkey.net/documentation.php?locale=en&q=content_script_api
 - Tampermonkey FAQ:
@@ -201,9 +217,6 @@ Accessed 2026-08-13:
 
 ## Open Questions
 
-- After the scoped-host prototype passes a real installed-profile matrix, does
-  the project want optional per-origin access to become the Chrome default, or
-  should broad access remain the explicit compatibility position?
 - Should the six manually reviewed ImageGen/runtime pairs become blocking pixel
   baselines, or stay review artifacts to avoid churn from browser font/rendering
   differences?

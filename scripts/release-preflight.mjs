@@ -62,6 +62,7 @@ export function buildPreflightPlan({ version, artifactRoot, buildRoot }) {
     nodeCheck('runtime-generation-drift', ['scripts/generate-ts-runtime-modules.mjs', '--check'], 'generated runtime byte drift'),
     npmCheck('unit-static-gates', ['run', 'check'], 'typecheck, static gates, and unit tests'),
     npmCheck('service-worker-boot', ['run', 'smoke:service-worker:check'], 'MV3 service-worker cold-start budget'),
+    npmCheck('host-permission-matrix', ['run', 'host-permissions:matrix'], 'installed-profile host grants and userscript privileged flows'),
     npmCheck('dependency-audit', ['audit', '--audit-level=critical', '--omit=optional'], 'critical production dependency advisories; documented image-size exception'),
     npmCheck('locale-drift', ['run', 'locale:generate:check'], 'canonical locale and generated catalog drift'),
     npmCheck('privacy-store-copy', ['run', 'store-copy:check'], 'manifest, privacy, and store-copy parity'),

@@ -5845,7 +5845,7 @@ const I18n = (() => {
       "installBrowserHostGrants": "Browser Host Grants",
       "installBroad": "Broad",
       "installNone": "None",
-      "installBrowserHostGrantsNote": "ScriptVault asks the browser only for hosts this script declares in run rules, update URLs, dependencies, or @connect. Universal rules stay blocked until you approve broad access.",
+      "installBrowserHostGrantsNote": "ScriptVault checks declared run, update, dependency, and @connect hosts against browser access. This release has compatibility-wide site access; the optional all-site registration guard still requires explicit approval for universal scripts.",
       "installAwaitingBroadAccessApproval": "Awaiting broad-access approval",
       "installNoHttpHostGrantsNeeded": "No HTTP(S) host grants needed",
       "installMoreCount": "+{count} more",
@@ -47871,6 +47871,11 @@ async function registerScript(script, { useUpdate = false, throwOnError = false 
         throw new Error(ruleResult?.error || 'GM_webRequest rule rejected');
       }
     }
+
+    if (script.settings?._registrationError) {
+      delete script.settings._registrationError;
+      await ScriptStorage.set(script.id, script);
+    }
   } catch (e) {
     console.error(`[ScriptVault] Failed to register ${script.meta?.name || script.id}:`, e);
     // Mark script with registration failure for UI display
@@ -48598,8 +48603,12 @@ function _ruleMutatesCspHeaders(rule) {
   return Object.keys(responseHeaders).some(_isCspHeaderName);
 }
 
+function _isHighPrivilegeScriptApiOverride(settings) {
+  return settings?.allowHighPrivilegeScriptApis === true;
+}
+
 function _isCspMutationAllowed(settings) {
-  return settings?.modifyCSP === 'yes' || isHighPrivilegeScriptApiOverride(settings);
+  return settings?.modifyCSP === 'yes' || _isHighPrivilegeScriptApiOverride(settings);
 }
 
 function _isDnrHostAllowedByScript(script, host) {
@@ -48619,7 +48628,7 @@ function _isDnrHostAllowedByScript(script, host) {
 function _validateWebRequestRulesForScript(script, rules, settings = {}) {
   const ruleList = Array.isArray(rules) ? rules : [];
   const scopeInfo = getScriptHostScopeInfo(script);
-  const highPrivilegeOverride = isHighPrivilegeScriptApiOverride(settings);
+  const highPrivilegeOverride = _isHighPrivilegeScriptApiOverride(settings);
   const initiatorDomains = scopeInfo.universal || highPrivilegeOverride ? [] : scopeInfo.hosts;
   if (!scopeInfo.universal && !highPrivilegeOverride && initiatorDomains.length === 0) {
     return { allowed: false, error: 'GM_webRequest requires concrete script host scope' };

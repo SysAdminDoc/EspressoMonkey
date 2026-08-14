@@ -2008,7 +2008,7 @@ function renderInstallUI(sourceUrl) {
           <span class="count">${hostPermissionPlan.origins.length > 0 ? numberFormatter.format(hostPermissionPlan.origins.length) : hostPermissionPlan.requiresBroadHostAccess ? escapeHtml(tInstall('installBroad', 'Broad')) : escapeHtml(tInstall('installNone', 'None'))}</span>
         </div>
         <p class="optional-perm-note" style="margin-top:0;margin-bottom:8px;font-size:0.85em;color:var(--text-muted,#888);">
-          ${escapeHtml(tInstall('installBrowserHostGrantsNote', 'ScriptVault asks the browser only for hosts this script declares in run rules, update URLs, dependencies, or @connect. Universal rules stay blocked until you approve broad access.'))}
+          ${escapeHtml(tInstall('installBrowserHostGrantsNote', 'ScriptVault checks declared run, update, dependency, and @connect hosts against browser access. This release has compatibility-wide site access; the optional all-site registration guard still requires explicit approval for universal scripts.'))}
         </p>
         <div class="tag-list">
           ${hostPermissionPlan.origins.length > 0
