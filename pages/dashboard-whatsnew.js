@@ -11,8 +11,8 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
-    '3.30.0': {
-      title: 'ScriptVault 3.30.0 — One Coherent Workbench',
+    '3.30.1': {
+      title: 'ScriptVault 3.30.1 — One Coherent Workbench',
       date: '2026-08-14',
       summary: 'This release gives every primary dashboard destination the same focused local-first shell, with clearer empty states, stronger tables, and more direct tools.',
       highlights: [

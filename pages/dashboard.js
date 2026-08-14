@@ -2651,15 +2651,211 @@
 
     function updateHeaderHeight() {
         const root = document.documentElement;
-        const header = document.querySelector('.tm-header');
+        const workbenchHeader = document.querySelector('.sv-workbench-topbar');
+        const legacyHeader = document.querySelector('.tm-header');
+        const header = workbenchHeader?.offsetHeight ? workbenchHeader : legacyHeader;
         if (!header) return;
         const headerH = header.offsetHeight;
         root.style.setProperty('--header-height', headerH + 'px');
         // Stack the scripts toolbar under the sticky header so the table thead
         // can dock right below both.
         const toolbar = document.querySelector('.scripts-toolbar');
-        const toolbarH = toolbar ? toolbar.offsetHeight : 0;
+        const toolbarStyle = toolbar ? getComputedStyle(toolbar) : null;
+        const toolbarH = toolbar
+            ? toolbar.offsetHeight || Number.parseFloat(toolbarStyle?.minHeight || '0') || 0
+            : 0;
         root.style.setProperty('--toolbar-bottom', (headerH + toolbarH) + 'px');
+    }
+
+    function syncThemedSelect(select) {
+        const controller = select?._scriptVaultThemedSelect;
+        if (!controller) return;
+
+        const selectedOption = select.options?.[select.selectedIndex]
+            || Array.from(select.options || []).find(option => !option.disabled);
+        controller.label.textContent = selectedOption?.textContent?.trim() || '';
+        controller.trigger.disabled = Boolean(select.disabled);
+        controller.optionButtons.forEach(button => {
+            const selected = button.dataset.value === select.value;
+            button.setAttribute('aria-selected', String(selected));
+            button.classList.toggle('selected', selected);
+        });
+    }
+
+    function setThemedSelectValue(select, value) {
+        if (!select) return;
+        select.value = value;
+        syncThemedSelect(select);
+    }
+
+    function setThemedSelectOpen(select, open, focusTarget = 'selected') {
+        const controller = select?._scriptVaultThemedSelect;
+        if (!controller || (open && controller.trigger.disabled)) return;
+
+        if (open) {
+            document.querySelectorAll('select.themed-select-native').forEach(otherSelect => {
+                if (otherSelect !== select) setThemedSelectOpen(otherSelect, false);
+            });
+        }
+
+        controller.wrapper.classList.toggle('open', open);
+        controller.menu.hidden = !open;
+        controller.trigger.setAttribute('aria-expanded', String(open));
+        if (!open) return;
+
+        requestAnimationFrame(() => {
+            const buttons = controller.optionButtons;
+            const selected = buttons.find(button => button.getAttribute('aria-selected') === 'true');
+            const target = focusTarget === 'first'
+                ? buttons[0]
+                : focusTarget === 'last'
+                    ? buttons.at(-1)
+                    : selected || buttons[0];
+            target?.focus({ preventScroll: true });
+        });
+    }
+
+    function renderThemedSelectMenu(select) {
+        const controller = select?._scriptVaultThemedSelect;
+        if (!controller) return;
+
+        const fragment = document.createDocumentFragment();
+        controller.optionButtons = [];
+        Array.from(select.options).forEach((option, index) => {
+            if (option.hidden) return;
+            const optionText = option.textContent?.trim() || '';
+            if (option.disabled) {
+                const groupLabel = document.createElement('div');
+                groupLabel.className = 'themed-select-group';
+                groupLabel.setAttribute('role', 'presentation');
+                groupLabel.textContent = optionText.replace(/^---\s*|\s*---$/gu, '');
+                fragment.append(groupLabel);
+                return;
+            }
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.id = `${select.id}Option${index}`;
+            button.className = 'themed-select-option';
+            button.setAttribute('role', 'option');
+            button.setAttribute('tabindex', '-1');
+            button.dataset.value = option.value;
+            button.textContent = optionText;
+            button.addEventListener('click', () => {
+                setThemedSelectValue(select, option.value);
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                setThemedSelectOpen(select, false);
+                controller.trigger.focus({ preventScroll: true });
+            });
+            controller.optionButtons.push(button);
+            fragment.append(button);
+        });
+        controller.menu.replaceChildren(fragment);
+        syncThemedSelect(select);
+    }
+
+    function initializeThemedSelect(select) {
+        if (!select || select._scriptVaultThemedSelect) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'themed-select';
+        wrapper.dataset.selectId = select.id;
+        select.parentNode?.insertBefore(wrapper, select);
+        wrapper.append(select);
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.id = `${select.id}Trigger`;
+        trigger.className = 'select-field bulk-select themed-select-trigger';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-controls', `${select.id}Menu`);
+        trigger.setAttribute('aria-label', select.getAttribute('aria-label') || select.title || 'Choose an option');
+        trigger.title = select.title || trigger.getAttribute('aria-label');
+
+        const label = document.createElement('span');
+        label.className = 'themed-select-label';
+        trigger.append(label);
+
+        const menu = document.createElement('div');
+        menu.id = `${select.id}Menu`;
+        menu.className = 'themed-select-menu';
+        menu.setAttribute('role', 'listbox');
+        menu.setAttribute('aria-label', trigger.getAttribute('aria-label'));
+        menu.hidden = true;
+        wrapper.append(trigger, menu);
+
+        select.classList.add('themed-select-native');
+        select.setAttribute('tabindex', '-1');
+        select.setAttribute('aria-hidden', 'true');
+        select._scriptVaultThemedSelect = {
+            wrapper,
+            trigger,
+            label,
+            menu,
+            optionButtons: []
+        };
+
+        trigger.addEventListener('click', () => {
+            setThemedSelectOpen(select, menu.hidden);
+        });
+        trigger.addEventListener('keydown', event => {
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+                event.preventDefault();
+                const focusTarget = event.key === 'Home'
+                    ? 'first'
+                    : event.key === 'End'
+                        ? 'last'
+                        : 'selected';
+                setThemedSelectOpen(select, true, focusTarget);
+            } else if (event.key === 'Escape' && !menu.hidden) {
+                event.preventDefault();
+                setThemedSelectOpen(select, false);
+            }
+        });
+        menu.addEventListener('keydown', event => {
+            const buttons = select._scriptVaultThemedSelect?.optionButtons || [];
+            const index = buttons.indexOf(document.activeElement);
+            let nextIndex = -1;
+            if (event.key === 'ArrowDown') nextIndex = (index + 1) % buttons.length;
+            else if (event.key === 'ArrowUp') nextIndex = (index - 1 + buttons.length) % buttons.length;
+            else if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = buttons.length - 1;
+            else if (event.key === 'Escape') {
+                event.preventDefault();
+                setThemedSelectOpen(select, false);
+                trigger.focus({ preventScroll: true });
+                return;
+            } else if (event.key === 'Tab') {
+                setThemedSelectOpen(select, false);
+                return;
+            } else {
+                return;
+            }
+            if (buttons.length === 0) return;
+            event.preventDefault();
+            buttons[nextIndex]?.focus({ preventScroll: true });
+        });
+        select.addEventListener('change', () => syncThemedSelect(select));
+        document.addEventListener('pointerdown', event => {
+            if (!wrapper.contains(event.target)) setThemedSelectOpen(select, false);
+        });
+
+        const observer = new MutationObserver(() => renderThemedSelectMenu(select));
+        observer.observe(select, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ['disabled', 'label']
+        });
+        select._scriptVaultThemedSelect.observer = observer;
+        renderThemedSelectMenu(select);
+    }
+
+    function initializeToolbarSelectMenus() {
+        [elements.filterSelect, elements.siteFilterSelect, elements.savedViewSelect]
+            .forEach(initializeThemedSelect);
     }
 
     // Only icon buttons whose label is a bare text node (next to an inline SVG)
@@ -2891,6 +3087,7 @@
         initDashboardTelemetryBus();
         restoreScriptWorkspaceStateFromQuery();
         try { initEditor(); } catch (e) { console.error('[ScriptVault] Editor init failed:', e); }
+        initializeToolbarSelectMenus();
         initEventListeners();
         updateSortIndicators();
         renderScriptTable();
@@ -9165,9 +9362,9 @@
                         : tDashboard('emptyClearFilter', 'Clear Filter');
                 elements.emptyStatePrimaryAction.onclick = () => {
                     if (elements.scriptSearch) elements.scriptSearch.value = '';
-                    if (elements.filterSelect) elements.filterSelect.value = 'all';
-                    if (elements.siteFilterSelect) elements.siteFilterSelect.value = 'all';
-                    if (elements.savedViewSelect) elements.savedViewSelect.value = 'default';
+                    setThemedSelectValue(elements.filterSelect, 'all');
+                    setThemedSelectValue(elements.siteFilterSelect, 'all');
+                    setThemedSelectValue(elements.savedViewSelect, 'default');
                     renderScriptTable();
                 };
             }
@@ -9190,9 +9387,9 @@
             elements.emptyStatePrimaryAction.textContent = tDashboard('emptyShowAllScripts', 'Show All Scripts');
             elements.emptyStatePrimaryAction.onclick = () => {
                 if (elements.scriptSearch) elements.scriptSearch.value = '';
-                if (elements.filterSelect) elements.filterSelect.value = 'all';
-                if (elements.siteFilterSelect) elements.siteFilterSelect.value = 'all';
-                if (elements.savedViewSelect) elements.savedViewSelect.value = 'default';
+                setThemedSelectValue(elements.filterSelect, 'all');
+                setThemedSelectValue(elements.siteFilterSelect, 'all');
+                setThemedSelectValue(elements.savedViewSelect, 'default');
                 renderScriptTable();
             };
         }
@@ -18202,22 +18399,22 @@
         });
 
         elements.filterSelect?.addEventListener('change', () => {
-            if (elements.savedViewSelect) elements.savedViewSelect.value = 'default';
+            setThemedSelectValue(elements.savedViewSelect, 'default');
             renderScriptTable(elements.scriptSearch?.value || '');
         });
         elements.siteFilterSelect?.addEventListener('change', () => {
-            if (elements.savedViewSelect) elements.savedViewSelect.value = 'default';
+            setThemedSelectValue(elements.savedViewSelect, 'default');
             renderScriptTable(elements.scriptSearch?.value || '');
         });
         elements.savedViewSelect?.addEventListener('change', () => {
             const view = elements.savedViewSelect?.value || 'default';
-            if (elements.siteFilterSelect) elements.siteFilterSelect.value = 'all';
+            setThemedSelectValue(elements.siteFilterSelect, 'all');
             if (elements.filterSelect) {
-                elements.filterSelect.value = view === 'enabled'
+                setThemedSelectValue(elements.filterSelect, view === 'enabled'
                     ? 'enabled'
                     : view === 'attention'
                         ? 'attention'
-                        : 'all';
+                        : 'all');
             }
             if (view === 'recent') {
                 state.sortColumn = 'updated';

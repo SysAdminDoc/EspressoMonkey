@@ -41,6 +41,22 @@ function renderRows() {
   `).join("");
 }
 
+function renderThemedSelect(id, label, options) {
+  return `
+    <div class="themed-select" data-select-id="${id}">
+      <select id="${id}" class="select-field bulk-select themed-select-native" tabindex="-1" aria-hidden="true" aria-label="${label}">
+        ${options.map(([value, text]) => `<option value="${value}">${text}</option>`).join("")}
+      </select>
+      <button class="select-field bulk-select themed-select-trigger" id="${id}Trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}Menu" aria-label="${label}">
+        <span class="themed-select-label">${label}</span>
+      </button>
+      <div class="themed-select-menu" id="${id}Menu" role="listbox" aria-label="${label}" hidden>
+        ${options.map(([value, text], index) => `<button class="themed-select-option${index === 0 ? " selected" : ""}" type="button" role="option" tabindex="-1" data-value="${value}" aria-selected="${index === 0}">${text}</button>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderDashboardShell(theme = "dark") {
   document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.density = "comfortable";
@@ -51,7 +67,7 @@ function renderDashboardShell(theme = "dark") {
         <aside class="sv-nav-rail" aria-label="ScriptVault workspace">
           <div class="sv-rail-brand">
             <div class="script-icon-placeholder" aria-hidden="true">SV</div>
-            <div><strong>ScriptVault</strong><span>v3.30.0</span></div>
+            <div><strong>ScriptVault</strong><span>v3.30.1</span></div>
           </div>
           <nav class="sv-rail-nav" aria-label="Dashboard sections">
             <button class="sv-rail-item active" type="button"><span class="sv-rail-icon">#</span><span>Scripts</span><span class="sv-rail-count">12</span></button>
@@ -110,9 +126,9 @@ function renderDashboardShell(theme = "dark") {
                 <button class="toolbar-btn" id="btnNewFolder" type="button"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"></path></svg>Folder</button>
                 <button class="toolbar-btn" id="btnFindScripts" type="button"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>Find</button>
                 <div class="toolbar-divider"></div>
-                <select id="filterSelect" class="select-field bulk-select" aria-label="Filter scripts"><option>All status</option></select>
-                <select id="siteFilterSelect" class="select-field bulk-select" aria-label="Filter by site"><option>All sites</option></select>
-                <select id="savedViewSelect" class="select-field bulk-select" aria-label="Saved views"><option>Saved views</option></select>
+                ${renderThemedSelect("filterSelect", "All status", [["all", "All status"], ["enabled", "Enabled"], ["disabled", "Disabled"]])}
+                ${renderThemedSelect("siteFilterSelect", "All sites", [["all", "All sites"], ["github.com", "github.com"], ["news.example", "news.example"]])}
+                ${renderThemedSelect("savedViewSelect", "Saved views", [["default", "Saved views"], ["enabled", "Active scripts"], ["attention", "Needs review"], ["recent", "Recently updated"]])}
                 <div class="bulk-action-cluster"><label class="bulk-toggle"><input type="checkbox"> <span>Select Shown</span></label><select class="select-field"><option>Choose Action</option></select><button class="btn">Apply</button></div>
                 <label class="search-box" aria-label="Search scripts">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="M21 21 16.65 16.65"></path></svg>
@@ -227,6 +243,29 @@ describe("dashboard visual shell", () => {
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     await page.mark("assertion: dashboard screenshot", () => (
       expect.element(shell).toMatchScreenshot(`dashboard-list-shell-${theme}`)
+    ));
+  });
+
+  it("keeps the saved views menu inside the dark workbench theme", async () => {
+    await page.viewport(1600, 980);
+    await page.mark("dashboard load", () => renderDashboardShell("dark"));
+    await page.mark("popover open: saved views", () => {
+      const picker = document.querySelector('.themed-select[data-select-id="savedViewSelect"]');
+      const trigger = document.getElementById("savedViewSelectTrigger");
+      const menu = document.getElementById("savedViewSelectMenu");
+      picker?.classList.add("open");
+      trigger?.setAttribute("aria-expanded", "true");
+      if (menu instanceof HTMLElement) menu.hidden = false;
+    });
+
+    const shell = page.getByTestId("dashboard-shell");
+    await page.mark("assertion: saved views menu visible", async () => {
+      await expect.element(shell).toBeVisible();
+      await expect.element(page.getByRole("listbox", { name: "Saved views" })).toBeVisible();
+    });
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await page.mark("assertion: saved views screenshot", () => (
+      expect.element(shell).toMatchScreenshot("dashboard-saved-views-open-dark")
     ));
   });
 

@@ -33,6 +33,20 @@ test('workbench filters, inspector tabs, and progressive row actions operate in 
     await expect(page.locator('#siteFilterSelect option')).toContainText(['All sites', 'example.com']);
     await expect(page.locator('#scriptInspectorTitle')).toHaveText('E2E Workbench Script');
 
+    const tableGeometry = await page.evaluate(() => {
+      const container = document.querySelector('.scripts-table-container')?.getBoundingClientRect();
+      const header = document.querySelector('.scripts-table thead th')?.getBoundingClientRect();
+      const row = document.querySelector('#scriptTableBody tr')?.getBoundingClientRect();
+      return {
+        containerTop: container?.top,
+        headerTop: header?.top,
+        headerBottom: header?.bottom,
+        rowTop: row?.top,
+      };
+    });
+    expect(Math.abs(tableGeometry.headerTop - tableGeometry.containerTop)).toBeLessThanOrEqual(2);
+    expect(Math.abs(tableGeometry.rowTop - tableGeometry.headerBottom)).toBeLessThanOrEqual(2);
+
     await page.locator('[data-inspector-tab="access"]').click();
     await expect(page.locator('#scriptInspectorAccessView')).toBeVisible();
     await expect(page.locator('#scriptInspectorOverview')).toBeHidden();
@@ -54,9 +68,27 @@ test('workbench filters, inspector tabs, and progressive row actions operate in 
     await page.locator('#siteFilterSelect').selectOption('example.com');
     await expect(page.locator('#scriptTableBody tr')).toHaveCount(1);
     await page.locator('#siteFilterSelect').selectOption('all');
-    await page.locator('#savedViewSelect').selectOption('enabled');
+    const savedViewTrigger = page.locator('#savedViewSelectTrigger');
+    await expect(savedViewTrigger).toBeVisible();
+    await expect(savedViewTrigger).toHaveAttribute('aria-expanded', 'false');
+    await savedViewTrigger.click();
+    const savedViewMenu = page.locator('#savedViewSelectMenu');
+    await expect(savedViewMenu).toBeVisible();
+    await expect(savedViewMenu.getByRole('option')).toHaveCount(4);
+    expect(await savedViewMenu.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe('rgb(255, 255, 255)');
+    await savedViewMenu.getByRole('option', { name: 'Active scripts' }).click();
+    await expect(savedViewTrigger).toHaveText('Active scripts');
+    await expect(savedViewTrigger).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('#filterSelect')).toHaveValue('enabled');
     await expect(page.locator('#scriptTableBody tr')).toHaveCount(1);
+
+    await savedViewTrigger.press('ArrowDown');
+    await expect(savedViewMenu.getByRole('option', { name: 'Active scripts' })).toBeFocused();
+    await savedViewMenu.press('End');
+    await expect(savedViewMenu.getByRole('option').last()).toBeFocused();
+    await savedViewMenu.press('Escape');
+    await expect(savedViewTrigger).toBeFocused();
+    await expect(savedViewMenu).toBeHidden();
 
     // Playwright 1.62's WebStorage API keeps this origin-state assertion out of
     // page.evaluate while still exercising the dashboard's real localStorage

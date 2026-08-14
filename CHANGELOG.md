@@ -2,8 +2,15 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
-## [v3.30.0] — One coherent desktop workbench (2026-08-14)
+## [v3.30.1] — One coherent desktop workbench (2026-08-14)
 
+- Bumped every authoritative and visible version surface to 3.30.1 so a
+  manually reloaded unpacked installation is immediately distinguishable.
+- Removed the populated Scripts table's false header spacer, constrained long
+  or malformed titles to their column, and reflowed narrow inspector actions.
+- Replaced the Windows-native Status, Sites, and Saved views popups with one
+  dark/light themed, keyboard-accessible listbox treatment while retaining the
+  underlying select state for compatibility and automation.
 - Reimagined and implemented all six primary dashboard destinations—Scripts,
   Updates, Settings, Utilities, Trash, and Help—from a coherent set of
   ImageGen desktop references while preserving the existing controls, routes,

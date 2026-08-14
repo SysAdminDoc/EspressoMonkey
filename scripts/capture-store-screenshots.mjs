@@ -64,18 +64,46 @@ async function findExtensionId(browser) {
   return id;
 }
 
-async function primeCaptureProfile(browser, extensionId) {
+async function primeCaptureProfile(browser, extensionId, fixture = 'empty') {
   const page = await browser.newPage();
   try {
     await page.goto(`chrome-extension://${extensionId}/pages/popup.html`, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
-    await page.evaluate(async () => {
+    await page.evaluate(async (captureFixture) => {
       await chrome.storage.local.set({
         lastSeenVersion: chrome.runtime.getManifest().version,
       });
-    });
+      if (captureFixture !== 'populated') return;
+
+      const fixtureNames = [
+        'Codex Resets — Auto Beg every 3 Seconds',
+        'GodLikeProductions Enhanced Suite',
+        'Reddit Hide All',
+        '4chanZ',
+        'Old Reddit Redirect',
+        'Segue — Spotify → YouTube Music exporter',
+        'A deliberately long userscript title that verifies table truncation without covering the inspector @namespace visual-qa @description metadata-like text must stay inside the name column @match https://example.test/*',
+        'Research Workspace Assistant',
+        'pfSense Auto Login',
+        'IMDb Enhanced',
+        'Local Layout Tuner',
+      ];
+      for (const [index, name] of fixtureNames.entries()) {
+        const version = `${1 + Math.floor(index / 4)}.${index % 5}.${index % 3}`;
+        const code = `// ==UserScript==\n// @name ${name}\n// @namespace https://scriptvault.local/visual-qa\n// @version ${version}\n// @description Deterministic populated-library fixture for dashboard visual QA.\n// @match https://example${index + 1}.com/*\n// @grant none\n// ==/UserScript==\n\ndocument.documentElement.dataset.scriptVaultFixture = '${index + 1}';\n`;
+        const result = await chrome.runtime.sendMessage({
+          action: 'saveScript',
+          data: {
+            id: `visual_qa_script_${index + 1}`,
+            code,
+            enabled: index % 3 === 0,
+          },
+        });
+        if (result?.error) throw new Error(result.error);
+      }
+    }, fixture);
   } finally {
     await page.close();
   }
@@ -191,6 +219,26 @@ function selectOutputSuffix(args) {
   return suffix;
 }
 
+function selectCaptureFixture(args) {
+  const fixtureArg = args.find(arg => arg.startsWith('--fixture='));
+  if (!fixtureArg) return 'empty';
+  const fixture = fixtureArg.slice('--fixture='.length).trim().toLowerCase();
+  if (!new Set(['empty', 'populated']).has(fixture)) {
+    throw new Error(`Unsupported capture fixture: ${fixture || '<empty>'}`);
+  }
+  return fixture;
+}
+
+function selectOpenControl(args) {
+  const openArg = args.find(arg => arg.startsWith('--open='));
+  if (!openArg) return '';
+  const control = openArg.slice('--open='.length).trim().toLowerCase();
+  if (control !== 'saved-views') {
+    throw new Error(`Unsupported open control: ${control || '<empty>'}`);
+  }
+  return control;
+}
+
 const screenshotArgs = process.argv.slice(2);
 const viewportOverride = selectViewportOverride(screenshotArgs);
 const selectedScreenshots = selectScreenshots(screenshotArgs).map(shot => (
@@ -198,6 +246,9 @@ const selectedScreenshots = selectScreenshots(screenshotArgs).map(shot => (
 ));
 const captureLocale = selectCaptureLocale(screenshotArgs);
 const outputSuffix = selectOutputSuffix(screenshotArgs);
+const captureFixture = selectCaptureFixture(screenshotArgs);
+const openControl = selectOpenControl(screenshotArgs);
+const dismissSetupWarning = screenshotArgs.includes('--dismiss-setup-warning');
 
 mkdirSync(screenshotDir, { recursive: true });
 
@@ -222,7 +273,7 @@ try {
   });
 
   const extensionId = await findExtensionId(browser);
-  await primeCaptureProfile(browser, extensionId);
+  await primeCaptureProfile(browser, extensionId, captureFixture);
 
   for (const shot of selectedScreenshots) {
     const outputName = [shot.name, captureLocale, outputSuffix].filter(Boolean).join('-');
@@ -286,6 +337,21 @@ try {
         return hasVisibleEmptyState || hasRenderedRows;
       }, { timeout: 15000, polling: 100 });
       console.log('  script library settled');
+      if (dismissSetupWarning) {
+        const dismissed = await page.evaluate(() => {
+          const button = document.getElementById('btnDismissWarning');
+          const banner = document.getElementById('setupWarningBanner');
+          if (!(button instanceof HTMLElement) || !(banner instanceof HTMLElement)) return false;
+          if (getComputedStyle(banner).display === 'none') return true;
+          button.click();
+          return true;
+        });
+        if (!dismissed) throw new Error('Setup warning dismissal control was unavailable');
+        await page.waitForFunction(
+          () => getComputedStyle(document.getElementById('setupWarningBanner')).display === 'none',
+          { timeout: 5000 },
+        );
+      }
       if (shot.variant === 'confirm') {
         await page.evaluate(() => {
           window.ScriptVaultDashboardUI?.confirm(
@@ -405,6 +471,9 @@ try {
             );
           }
         }
+      } else if (openControl === 'saved-views') {
+        await clickSelector(page, '#savedViewSelectTrigger');
+        await page.waitForSelector('#savedViewSelectMenu:not([hidden])', { visible: true, timeout: 5000 });
       }
     } else {
       const selectors = {

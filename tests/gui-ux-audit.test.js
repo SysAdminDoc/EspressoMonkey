@@ -11,6 +11,7 @@ const devtoolsJs = readFileSync(resolve(process.cwd(), "pages/devtools-panel.js"
 const dashboardHtml = readFileSync(resolve(process.cwd(), "pages/dashboard.html"), "utf8");
 const dashboardJs = readFileSync(resolve(process.cwd(), "pages/dashboard.js"), "utf8");
 const dashboardWorkbenchCss = readFileSync(resolve(process.cwd(), "pages/dashboard-workbench.css"), "utf8");
+const dashboardParityCss = readFileSync(resolve(process.cwd(), "pages/dashboard-parity.css"), "utf8");
 const themeTokensCss = readFileSync(resolve(process.cwd(), "pages/theme-tokens.css"), "utf8");
 const pageDirJs = readFileSync(resolve(process.cwd(), "pages/page-dir.js"), "utf8");
 const monacoAdapterJs = readFileSync(resolve(process.cwd(), "pages/monaco-adapter.js"), "utf8");
@@ -40,6 +41,17 @@ function pageUiFiles(dir = resolve(process.cwd(), "pages")) {
 }
 
 describe("cross-surface UX audit", () => {
+  test("dashboard table spacing and themed toolbar menus keep their final-layer contracts", () => {
+    expect(dashboardParityCss).toMatch(/\.scripts-table-container\s*\{[\s\S]*?overflow:\s*clip;/);
+    expect(dashboardParityCss).toMatch(/\.scripts-workbench-grid \.scripts-table\s*\{[\s\S]*?table-layout:\s*fixed;/);
+    expect(dashboardParityCss).toContain('.themed-select-menu');
+    expect(dashboardParityCss).toContain('.themed-select-option[aria-selected="true"]');
+    expect(dashboardJs).toContain('function initializeToolbarSelectMenus()');
+    expect(dashboardJs).toContain("trigger.setAttribute('aria-haspopup', 'listbox')");
+    expect(dashboardJs).toContain("event.key === 'ArrowDown'");
+    expect(dashboardJs).toContain("event.key === 'Escape'");
+  });
+
   test("UI surfaces avoid oversized rounded backdrops and blur-heavy chrome", () => {
     const disallowedRadius = /border-radius:[^;]*(?:1[3-9]|2[0-9]|999)px/;
     const disallowedScaledRadius = /border-radius:\s*calc\((?:9|1[0-9])px \* var\(--ui-scale\)\)/;
