@@ -83,7 +83,9 @@ describe('Microsoft Edge sideload smoke wiring', () => {
   });
 
   it('loads the generated Edge package and exercises extension runtime paths', () => {
-    expect(edgeSmoke).toContain('enableExtensions: [BUILD_DIR]');
+    expect(edgeSmoke).toContain('chromium.launchPersistentContext(userDataDir');
+    expect(edgeSmoke).toContain('`--disable-extensions-except=${BUILD_DIR}`');
+    expect(edgeSmoke).toContain('`--load-extension=${BUILD_DIR}`');
     expect(edgeSmoke).toContain('#itemAllowUserScripts');
     expect(edgeSmoke).toContain('#allow-user-scripts');
     expect(edgeSmoke).toContain('fluent-switch');

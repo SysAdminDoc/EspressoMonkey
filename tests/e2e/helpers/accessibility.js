@@ -63,10 +63,28 @@ export async function inspectInteractiveGeometry(page) {
       '[tabindex]:not([tabindex="-1"])',
     ].join(',');
     const visible = element => {
-      const style = getComputedStyle(element);
       const rect = element.getBoundingClientRect();
-      return !element.hidden && style.display !== 'none' && style.visibility !== 'hidden' &&
-        Number(style.opacity || 1) > 0 && rect.width > 0 && rect.height > 0;
+      if (rect.width <= 0 || rect.height <= 0) return false;
+
+      for (let current = element; current instanceof Element; current = current.parentElement) {
+        const style = getComputedStyle(current);
+        if (
+          current.hidden ||
+          style.display === 'none' ||
+          style.visibility === 'hidden' ||
+          Number(style.opacity || 1) <= 0
+        ) {
+          return false;
+        }
+
+        const currentRect = current.getBoundingClientRect();
+        const clipsToNothing =
+          (style.clip !== 'auto' || style.clipPath !== 'none') &&
+          (currentRect.width <= 1 || currentRect.height <= 1);
+        if (clipsToNothing) return false;
+      }
+
+      return true;
     };
     const identify = element => {
       if (element.id) return `#${CSS.escape(element.id)}`;

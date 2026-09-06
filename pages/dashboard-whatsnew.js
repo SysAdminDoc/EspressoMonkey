@@ -11,6 +11,21 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
+    '3.30.3': {
+      title: 'ScriptVault 3.30.3: A Clearer Identity',
+      date: '2026-09-05',
+      summary: 'This release gives ScriptVault a more distinctive shield and brace mark, cleaner product copy, and a tighter script table at the standard desktop viewport.',
+      highlights: [
+        { icon: 'BRAND', title: 'A Mark Built for ScriptVault', desc: 'The extension now uses a green shield and brace identity that stays recognizable in the toolbar, dashboard, and release artwork.' },
+        { icon: 'FLOW', title: 'Desktop Columns Stay Clear', desc: 'The standard 1280 pixel workbench hides the Updated column before headers can collide, while wider layouts keep the full table.' },
+        { icon: 'VIEW', title: 'Realistic Product Evidence', desc: 'Screenshot fixtures now use neutral, professional script names that show the product without distracting test copy.' },
+      ],
+      improvements: [
+        'Small icon sizes receive a tuned reduction so the braces remain readable in browser chrome.',
+        'The project page now leads with the product, install path, current screenshots, and direct privacy answers.',
+        'Marketing captures continue to fail if an extension page makes an unexpected external request.',
+      ],
+    },
     '3.30.2': {
       title: 'ScriptVault 3.30.2 — A Popup That Fits',
       date: '2026-08-14',

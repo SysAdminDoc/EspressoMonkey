@@ -12,7 +12,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import puppeteer from 'puppeteer-core';
+import { chromium } from '@playwright/test';
 import { closeBrowserWithFallback, removeTempProfileDir } from './browser-smoke-utils.mjs';
 
 const ROOT = process.cwd();
@@ -187,54 +187,35 @@ async function smokePageServer() {
   };
 }
 
-async function findExtensionId(browser) {
-  const isScriptVaultTarget = target => {
-    const url = target.url();
-    return url.startsWith('chrome-extension://') && url.endsWith('/background.js');
-  };
-  const existing = browser.targets().find(isScriptVaultTarget);
-  const target = existing || await browser.waitForTarget(isScriptVaultTarget, { timeout: 20000 });
-  const [, extensionId] = target.url().match(/^chrome-extension:\/\/([^/]+)/) || [];
-  if (!extensionId) fail(`Could not resolve extension id from target URL: ${target.url()}`);
+async function findExtensionId(context) {
+  const isScriptVaultWorker = worker => (
+    worker.url().startsWith('chrome-extension://')
+    && worker.url().endsWith('/background.js')
+  );
+  const existing = context.serviceWorkers().find(isScriptVaultWorker);
+  const worker = existing || await context.waitForEvent('serviceworker', {
+    predicate: isScriptVaultWorker,
+    timeout: 20000,
+  });
+  const [, extensionId] = worker.url().match(/^chrome-extension:\/\/([^/]+)/) || [];
+  if (!extensionId) fail(`Could not resolve extension id from service worker URL: ${worker.url()}`);
   return extensionId;
 }
 
-async function attachTargetLogging(target, errors, seenTargets) {
-  if (seenTargets.has(target)) return;
-  seenTargets.add(target);
-  const url = target.url();
-  const type = target.type();
-  const extensionTarget = url.startsWith('chrome-extension://') || type === 'service_worker';
-  if (!extensionTarget) return;
-
-  if (type === 'page') {
-    const page = await target.page().catch(() => null);
-    if (!page) return;
-    attachPageLogging(page, errors, `page:${url || '<pending>'}`);
-    return;
-  }
-
-  if (type === 'service_worker') {
-    const session = await target.createCDPSession().catch(() => null);
-    if (!session) return;
-    await session.send('Runtime.enable').catch(() => {});
-    session.on('Runtime.exceptionThrown', event => {
-      errors.push({
-        scope: `service_worker:${url}`,
-        type: 'exception',
-        text: event.exceptionDetails?.text || event.exceptionDetails?.exception?.description || 'service worker exception',
-      });
+function attachWorkerLogging(worker, errors, seenWorkers) {
+  if (seenWorkers.has(worker)) return;
+  seenWorkers.add(worker);
+  const url = worker.url();
+  if (!url.startsWith('chrome-extension://')) return;
+  worker.on('console', message => {
+    if (message.type() !== 'error') return;
+    errors.push({
+      scope: `service_worker:${url}`,
+      type: 'console.error',
+      text: message.text(),
+      location: message.location(),
     });
-    session.on('Runtime.consoleAPICalled', event => {
-      if (event.type !== 'error') return;
-      const text = (event.args || []).map(arg => arg.value || arg.description || '').filter(Boolean).join(' ');
-      errors.push({
-        scope: `service_worker:${url}`,
-        type: 'console.error',
-        text: text || 'service worker console.error',
-      });
-    });
-  }
+  });
 }
 
 function attachPageLogging(page, errors, scope) {
@@ -265,7 +246,7 @@ async function openDashboard(browser, extensionId, errors) {
     timeout: 25000,
   });
   await page.waitForSelector('#scriptsPanel.tm-panel.active', { timeout: 20000 });
-  await page.waitForSelector('.tm-tab[data-tab="scripts"]', { timeout: 20000 });
+  await page.waitForSelector('.tm-tab[data-tab="scripts"]', { state: 'attached', timeout: 20000 });
 
   return {
     page,
@@ -462,7 +443,7 @@ async function openInstallReview(browser, extensionId, dashboardPage, errors) {
     await page.waitForFunction(browserName => (
       document.body.innerText.includes(`ScriptVault ${browserName} Smoke`)
       || !!document.querySelector('.install-terminal.error')
-    ), { timeout: 10000 }, SMOKE_BROWSER_NAME);
+    ), SMOKE_BROWSER_NAME, { timeout: 10000 });
     const snapshot = await page.evaluate(browserName => ({
       title: document.title,
       heading: document.querySelector('h1')?.textContent?.trim() || '',
@@ -525,9 +506,11 @@ async function scriptRoundTrip(browser, dashboardPage) {
   const targetPage = await browser.newPage();
   try {
     await targetPage.goto(target.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await targetPage.waitForFunction(() => document.documentElement.dataset.scriptvaultBrowserSmoke === 'ok', {
-      timeout: 15000,
-    });
+    await targetPage.waitForFunction(
+      () => document.documentElement.dataset.scriptvaultBrowserSmoke === 'ok',
+      undefined,
+      { timeout: 15000 },
+    );
     const runResult = await targetPage.evaluate(() => ({
       ok: document.documentElement.dataset.scriptvaultBrowserSmoke === 'ok',
       marker: document.documentElement.dataset.scriptvaultBrowserSmoke || '',
@@ -574,7 +557,7 @@ async function main() {
   const userDataDir = await mkdtemp(join(tmpdir(), SMOKE_PROFILE_PREFIX));
   activeUserDataDir = userDataDir;
   const extensionErrors = [];
-  const seenTargets = new WeakSet();
+  const seenWorkers = new WeakSet();
   let browser;
   let evidence = {
     schemaVersion: 1,
@@ -596,14 +579,13 @@ async function main() {
   };
 
   try {
-    browser = await puppeteer.launch({
+    browser = await chromium.launchPersistentContext(userDataDir, {
       executablePath,
       headless: args.has('--headed') ? false : true,
-      userDataDir,
       timeout: Math.min(SMOKE_TIMEOUT_MS, 60000),
-      pipe: true,
-      enableExtensions: [BUILD_DIR],
       args: [
+        `--disable-extensions-except=${BUILD_DIR}`,
+        `--load-extension=${BUILD_DIR}`,
         '--disable-dev-shm-usage',
         '--no-default-browser-check',
         '--no-first-run',
@@ -613,14 +595,24 @@ async function main() {
     activeBrowser = browser;
     logPhase('browser launched');
 
-    browser.on('targetcreated', target => {
-      attachTargetLogging(target, extensionErrors, seenTargets).catch(error => {
-        extensionErrors.push({ scope: 'targetcreated', type: 'logging-attach-failed', text: error?.message || String(error) });
+    browser.on('page', page => {
+      attachPageLogging(page, extensionErrors, `page:${page.url() || '<pending>'}`);
+    });
+    browser.on('serviceworker', worker => attachWorkerLogging(worker, extensionErrors, seenWorkers));
+    browser.on('weberror', webError => {
+      const page = webError.page();
+      const url = page?.url() || '';
+      if (!url.startsWith('chrome-extension://')) return;
+      extensionErrors.push({
+        scope: `page:${url}`,
+        type: 'pageerror',
+        text: webError.error()?.message || String(webError.error()),
       });
     });
-    await Promise.all(browser.targets().map(target => attachTargetLogging(target, extensionErrors, seenTargets)));
+    browser.pages().forEach(page => attachPageLogging(page, extensionErrors, `page:${page.url() || '<pending>'}`));
+    browser.serviceWorkers().forEach(worker => attachWorkerLogging(worker, extensionErrors, seenWorkers));
 
-    evidence.browserVersion = await browser.version();
+    evidence.browserVersion = browser.browser()?.version() || 'unknown';
     evidence.edgeVersion = evidence.browserVersion;
     const extensionId = await findExtensionId(browser);
     evidence.extensionId = extensionId;

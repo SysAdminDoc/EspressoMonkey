@@ -77,22 +77,78 @@ async function primeCaptureProfile(browser, extensionId, fixture = 'empty') {
       });
       if (captureFixture !== 'populated') return;
 
-      const fixtureNames = [
-        'Codex Resets — Auto Beg every 3 Seconds',
-        'GodLikeProductions Enhanced Suite',
-        'Reddit Hide All',
-        '4chanZ',
-        'Old Reddit Redirect',
-        'Segue — Spotify → YouTube Music exporter',
-        'A deliberately long userscript title that verifies table truncation without covering the inspector @namespace visual-qa @description metadata-like text must stay inside the name column @match https://example.test/*',
-        'Research Workspace Assistant',
-        'pfSense Auto Login',
-        'IMDb Enhanced',
-        'Local Layout Tuner',
+      const fixtures = [
+        {
+          name: 'Accessibility Contrast Fixer',
+          description: 'Improves focus rings and text contrast on documentation pages.',
+          match: 'https://docs.example.com/*',
+          grant: 'GM_addStyle',
+          body: `GM_addStyle([
+  ':focus-visible {',
+  '  outline: 3px solid #22c55e !important;',
+  '  outline-offset: 3px !important;',
+  '}',
+  '.muted, .secondary {',
+  '  color: #d1d5db !important;',
+  '}',
+].join('\\n'));
+
+document.documentElement.dataset.contrastFixer = 'active';`,
+        },
+        {
+          name: 'Documentation Link Checker',
+          description: 'Marks broken links and redirects before documentation is published.',
+          match: 'https://docs.example.net/*',
+        },
+        {
+          name: 'Reading List Cleaner',
+          description: 'Removes duplicate entries from browser-based reading lists.',
+          match: 'https://reader.example.com/*',
+        },
+        {
+          name: 'Issue Board Compact View',
+          description: 'Condenses large issue boards while keeping status and assignee visible.',
+          match: 'https://issues.example.com/*',
+        },
+        {
+          name: 'Release Notes Formatter',
+          description: 'Turns tagged changes into a clean release-note draft.',
+          match: 'https://releases.example.com/*',
+        },
+        {
+          name: 'Music Queue Exporter',
+          description: 'Exports the current music queue as a portable text list.',
+          match: 'https://music.example.com/*',
+        },
+        {
+          name: 'Multi-Repository Deployment Status',
+          description: 'Adds compact deployment status badges across repository dashboards.',
+          match: 'https://deploy.example.com/*',
+        },
+        {
+          name: 'Research Workspace Helper',
+          description: 'Saves selected sources and annotations in a local research panel.',
+          match: 'https://research.example.com/*',
+        },
+        {
+          name: 'Router Session Helper',
+          description: 'Restores the last-used router page after a session timeout.',
+          match: 'https://router.example.com/*',
+        },
+        {
+          name: 'Movie Watchlist Enhancer',
+          description: 'Adds ratings and release dates to browser-based movie watchlists.',
+          match: 'https://movies.example.com/*',
+        },
+        {
+          name: 'Local Layout Tuner',
+          description: 'Applies a compact layout preset to local administration tools.',
+          match: 'https://admin.example.com/*',
+        },
       ];
-      for (const [index, name] of fixtureNames.entries()) {
+      for (const [index, fixture] of fixtures.entries()) {
         const version = `${1 + Math.floor(index / 4)}.${index % 5}.${index % 3}`;
-        const code = `// ==UserScript==\n// @name ${name}\n// @namespace https://scriptvault.local/visual-qa\n// @version ${version}\n// @description Deterministic populated-library fixture for dashboard visual QA.\n// @match https://example${index + 1}.com/*\n// @grant none\n// ==/UserScript==\n\ndocument.documentElement.dataset.scriptVaultFixture = '${index + 1}';\n`;
+        const code = `// ==UserScript==\n// @name ${fixture.name}\n// @namespace https://scriptvault.local/visual-qa\n// @version ${version}\n// @description ${fixture.description}\n// @match ${fixture.match}\n// @grant ${fixture.grant || 'none'}\n// ==/UserScript==\n\n${fixture.body || `document.documentElement.dataset.scriptVaultFixture = '${index + 1}';`}\n`;
         const result = await chrome.runtime.sendMessage({
           action: 'saveScript',
           data: {
@@ -378,7 +434,11 @@ try {
         });
         await page.waitForSelector('#modal.show', { visible: true, timeout: 10000 });
       } else if (shot.variant === 'editor' || shot.variant === 'editor-settings') {
-        await clickSelector(page, '#btnNewScript');
+        if (captureFixture === 'populated') {
+          await clickSelector(page, '.script-name-button[data-id="visual_qa_script_1"]');
+        } else {
+          await clickSelector(page, '#btnNewScript');
+        }
         try {
           await page.waitForFunction(() => {
             const overlay = document.querySelector('.editor-overlay.active');

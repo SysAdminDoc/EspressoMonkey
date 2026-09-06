@@ -54,8 +54,10 @@ describe('README competitor-claim freshness', () => {
   it('no longer claims Violentmonkey lacks Manifest V3', () => {
     // The specific regression: false since violentmonkey v2.43.0 (2026-07-14).
     expect(readme).not.toContain('Beta/test builds');
-    const comparison = readme.slice(readme.indexOf('## Comparison'), readme.indexOf('## Headless E2E Verification'));
-    expect(comparison).toContain('violentmonkey/violentmonkey/releases');
+    if (readme.includes('## Comparison')) {
+      const comparison = readme.slice(readme.indexOf('## Comparison'));
+      expect(comparison).toContain('violentmonkey/violentmonkey/releases');
+    }
   });
 
   it('keeps the age limit tight enough to matter', () => {

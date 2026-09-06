@@ -70,9 +70,13 @@ INCLUDE=(
   background.js
   content.js
   shared
+  modules/find-script-sources.js
   modules/i18n.js
+  modules/local-libraries.js
+  modules/local-workspace-project.js
   modules/script-config.js
   modules/user-scripts-setup.js
+  modules/userstyles.js
   lib/acorn.min.js
   lib/diff.min.js
   pages

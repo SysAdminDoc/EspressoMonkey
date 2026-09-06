@@ -927,7 +927,15 @@ describe('Local-date keys for heatmap and gamification (2026-07 regression)', ()
 });
 
 describe('Package includes page-loaded modules (2026-07 regression)', () => {
-  const pageModules = ['modules/i18n.js', 'modules/script-config.js', 'modules/user-scripts-setup.js'];
+  const pageModules = [
+    'modules/find-script-sources.js',
+    'modules/i18n.js',
+    'modules/local-libraries.js',
+    'modules/local-workspace-project.js',
+    'modules/script-config.js',
+    'modules/user-scripts-setup.js',
+    'modules/userstyles.js',
+  ];
   it('build.sh ships the page-loaded modules', () => {
     const src = read('build.sh');
     for (const m of pageModules) expect(src).toContain(m);

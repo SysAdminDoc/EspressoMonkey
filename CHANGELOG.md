@@ -2,6 +2,29 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
+## [v3.30.3] Brand and product presentation refresh (2026-09-05)
+
+- Replaced the extension icon family with the selected green shield and brace
+  identity, including tuned small sizes and a reusable transparent master.
+- Added a fixed dark wordmark banner that stays readable on both GitHub themes.
+- Kept the standard 1280 pixel script table readable by collapsing the Updated
+  column before its header can collide with adjacent content.
+- Replaced internal and novelty screenshot fixtures with realistic script names
+  suitable for the public project page and store media.
+- Reworked the README around installation, current product evidence, security,
+  browser support, and contributor setup.
+- Kept the empty library useful by leaving script discovery available while
+  hiding table controls that have nothing to operate on.
+- Fixed forced-colors text and 800 pixel toolbar hit targets in the redesigned
+  dashboard, then exercised the corrected states in the release browser suite.
+- Replaced the Edge smoke runner's broken Puppeteer launch path with a
+  Playwright persistent profile. Strict sideload checks now pass in Edge and
+  Brave without console or runtime errors.
+- Restored four page-loaded modules that were missing from Chrome, Edge, and
+  Firefox archives. Packaging tests now pin the complete seven-module set.
+- Pinned patched `fast-uri` and `nanoid` releases. The remaining audit findings
+  sit in the Firefox packaging toolchain and are not imported by the extension.
+
 ## [v3.30.2] — Popup footer scale resilience (2026-08-14)
 
 - Kept the popup's Open Dashboard label on one line and changed the footer to
