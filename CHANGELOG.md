@@ -2,6 +2,13 @@
 
 All notable changes to ScriptVault will be documented in this file.
 
+## [v3.30.4] Brand archive and current product evidence (2026-09-07)
+
+- Preserved all five original identity directions under `assets/brand/concepts/`.
+- Saved untouched copies of the approved brace shield and matching wordmark under `assets/brand/`.
+- Recorded both approved directions in a machine-readable selection file.
+- Refreshed the public product gallery from an isolated browser profile running 3.30.4.
+
 ## [v3.30.3] Brand and product presentation refresh (2026-09-05)
 
 - Replaced the extension icon family with the selected green shield and brace

@@ -11,6 +11,19 @@ const WhatsNew = (() => {
     : '2.0.0';
 
   const CHANGELOG = {
+    '3.30.4': {
+      title: 'ScriptVault 3.30.4: Brand Archive',
+      date: '2026-09-07',
+      summary: 'This patch preserves the full identity exploration and refreshes the public product captures from the current extension build.',
+      highlights: [
+        { icon: 'BRAND', title: 'The Full Design Trail', desc: 'Five original logo directions now live beside the approved brace shield and wordmark masters.' },
+        { icon: 'VIEW', title: 'Current Product Evidence', desc: 'The public gallery was captured again from an isolated browser profile running this release.' },
+      ],
+      improvements: [
+        'The selected masters remain byte-for-byte copies of the approved original concepts.',
+        'Release checks cover the installed extension, browser packages, screenshots, and artifact digests.',
+      ],
+    },
     '3.30.3': {
       title: 'ScriptVault 3.30.3: A Clearer Identity',
       date: '2026-09-05',

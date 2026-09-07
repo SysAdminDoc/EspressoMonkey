@@ -7,7 +7,7 @@
 <p align="center"><strong>Install, inspect, and run userscripts without giving up control.</strong></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.30.3-16a34a?style=flat-square" alt="Version 3.30.3">
+  <img src="https://img.shields.io/badge/version-3.30.4-16a34a?style=flat-square" alt="Version 3.30.4">
   <img src="https://img.shields.io/badge/license-MIT-f59e0b?style=flat-square" alt="MIT License">
   <img src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Firefox-2563eb?style=flat-square" alt="Chrome, Edge, and Firefox">
   <img src="https://img.shields.io/badge/telemetry-none-16a34a?style=flat-square" alt="No telemetry">
@@ -182,17 +182,17 @@ so the editor falls back to the textarea adapter.
 ## Browser Support Matrix
 
 <!-- SCRIPT_VAULT_BROWSER_SUPPORT_MATRIX:START -->
-_Last generated: 2026-09-05 with `npm run support:matrix`. Version source: `manifest.json` / `manifest-firefox.json` 3.30.3._
+_Last generated: 2026-09-07 with `npm run support:matrix`. Version source: `manifest.json` / `manifest-firefox.json` 3.30.4._
 
 _Chromium cadence note: Chrome moves to a 14-day stable cadence at M153 (2026-09-08), or about 26 milestones per year. ScriptVault supports M130+; measured against M153, that is a 23-milestone / approximately 11-month calendar window, expressed as an explicit milestone floor rather than a rolling last-N assumption._
 
 | Browser | Support level | Tested version / target | Last successful verification | Verification evidence | Unsupported or deferred APIs |
 |---|---|---|---|---|---|
-| Chrome / Chromium | Tier 1 published target | Chrome 130+ MV3 | 2026-09-05 | `npm run smoke:dashboard`, `npm run cws:check`, local Chrome ZIP packaging with `bash build.sh` | Chrome 138+ requires per-extension Allow User Scripts; current-site recovery uses Chrome 133+ `permissions.addHostAccessRequest` when available and falls back to `permissions.request({ origins })`; per-script `worldId` is Chrome 133+ and feature-gated |
-| Microsoft Edge | Tier 1 compatible package; Partner Center publication manual | Edge 130+ Chromium MV3 package | 2026-09-06 Edge sideload smoke passed; package/report generated | `npm run build:edge:check`, `edge-artifacts/scriptvault-edge-v3.30.3.zip`, `edge-artifacts/edge-build-3.30.3.json`, `npm run smoke:edge`, `edge-artifacts/edge-smoke-3.30.3.json`; local release attaches `edge-artifacts/*` manually | Manual Partner Center upload remains required until a live Edge Add-ons listing exists; Microsoft Edge Add-ons REST update automation is deferred until listing identifiers and publisher credentials are provisioned; Dedicated local Edge sideload smoke passed on 152.0.4191.62; dashboard, popup, userScripts toggle, save/toggle, and local target execution were verified |
-| Firefox Desktop | AMO validation target, not a published listing | Firefox 140.0+ MV3 | 2026-09-05 | `npm run firefox:package`, `npm run smoke:firefox`; web-ext lint 0 errors / 0 notices / 59 warnings | `sidePanel`, `offscreen`, `identity` OAuth, and some `userScripts.execute` flows are unsupported/deferred; host grant/revoke diagnostics listen to permissions events; Firefox package omits Monaco until the Firefox editor-loading pass |
+| Chrome / Chromium | Tier 1 published target | Chrome 130+ MV3 | 2026-09-07 | `npm run smoke:dashboard`, `npm run cws:check`, local Chrome ZIP packaging with `bash build.sh` | Chrome 138+ requires per-extension Allow User Scripts; current-site recovery uses Chrome 133+ `permissions.addHostAccessRequest` when available and falls back to `permissions.request({ origins })`; per-script `worldId` is Chrome 133+ and feature-gated |
+| Microsoft Edge | Tier 1 compatible package; Partner Center publication manual | Edge 130+ Chromium MV3 package | 2026-09-07 Edge sideload smoke passed; package/report generated | `npm run build:edge:check`, `edge-artifacts/scriptvault-edge-v3.30.4.zip`, `edge-artifacts/edge-build-3.30.4.json`, `npm run smoke:edge`, `edge-artifacts/edge-smoke-3.30.4.json`; local release attaches `edge-artifacts/*` manually | Manual Partner Center upload remains required until a live Edge Add-ons listing exists; Microsoft Edge Add-ons REST update automation is deferred until listing identifiers and publisher credentials are provisioned; Dedicated local Edge sideload smoke passed on 152.0.4191.62; dashboard, popup, userScripts toggle, save/toggle, and local target execution were verified |
+| Firefox Desktop | AMO validation target, not a published listing | Firefox 140.0+ MV3 | 2026-09-07 | `npm run firefox:package`, `npm run smoke:firefox`; web-ext lint 0 errors / 0 notices / 59 warnings | `sidePanel`, `offscreen`, `identity` OAuth, and some `userScripts.execute` flows are unsupported/deferred; host grant/revoke diagnostics listen to permissions events; Firefox package omits Monaco until the Firefox editor-loading pass |
 | Firefox for Android | Deferred; not an AMO compatibility target | No current `gecko_android` manifest target | 2026-09-05 | `manifest-firefox.json` intentionally omits `gecko_android` until an Android smoke gate exists | Android UI/runtime, extension-action overlay, host-permission, import/export, and WebDAV paths are unverified |
-| Brave / Vivaldi / Opera / Arc | Chromium derivative local-smoke targets | Chrome 130+ compatible package | 2026-09-06 local smoke passed: Brave | `npm run smoke:derivatives`, `chromium-derivative-artifacts/summary-3.30.3.json`, `chromium-derivative-artifacts/brave-3.30.3.json` | Vivaldi, Opera, Arc were not installed for the latest local run; store policy, shields/sidebar behavior, and extension UI chrome remain browser-specific |
+| Brave / Vivaldi / Opera / Arc | Chromium derivative local-smoke targets | Chrome 130+ compatible package | 2026-09-07 local smoke passed: Brave | `npm run smoke:derivatives`, `chromium-derivative-artifacts/summary-3.30.4.json`, `chromium-derivative-artifacts/brave-3.30.4.json` | Vivaldi, Opera, Arc were not installed for the latest local run; store policy, shields/sidebar behavior, and extension UI chrome remain browser-specific |
 | Orion / Safari | Not supported | Not a current target | Not verified | No build, smoke, or package path | Requires separate WebKit/Orion validation and likely native Safari extension work |
 <!-- SCRIPT_VAULT_BROWSER_SUPPORT_MATRIX:END -->
 
@@ -248,7 +248,7 @@ rejects unexpected external HTTP requests from extension-owned pages.
 For a complete credential-free release rehearsal:
 
 ```bash
-npm run release:preflight -- --version 3.30.3
+npm run release:preflight -- --version 3.30.4
 ```
 
 It writes logs, reports, and the requested ZIP under `release-artifacts/`.
@@ -284,4 +284,4 @@ viewports.
 
 ScriptVault is available under the [MIT License](LICENSE).
 
-<p align="center"><strong>ScriptVault v3.30.3</strong></p>
+<p align="center"><strong>ScriptVault v3.30.4</strong></p>
