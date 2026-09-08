@@ -573,7 +573,7 @@ describe('ScriptStorage', () => {
 
 describe('LocalWorkspaceBindings', () => {
   it('stores handles locally while returning display-safe summaries', async () => {
-    const handle = { kind: 'file', name: 'alpha.user.js', absolutePath: 'C:\\Users\\--\\secret\\alpha.user.js' };
+    const handle = { kind: 'file', name: 'alpha.user.js', absolutePath: 'C:\\Users\\dev\\secret\\alpha.user.js' };
 
     const summary = await LocalWorkspaceBindings.put({
       bindingId: 'binding_alpha',

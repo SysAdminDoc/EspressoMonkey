@@ -137,7 +137,7 @@ describe('local workspace project manifest', () => {
     const portable = toPortableLocalWorkspaceProjectManifest({
       ...result.manifest,
       handle: { name: 'secret' },
-      absolutePath: 'C:/Users/--/secret/one.user.js',
+      absolutePath: 'C:/Users/dev/secret/one.user.js',
       code: 'window.secret = true;',
     });
     const serialized = JSON.stringify(portable);

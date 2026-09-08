@@ -467,8 +467,8 @@ describe('runtime import/export archive identity', () => {
       notes: 'portable note',
       localWorkspaceBindingId: 'binding-secret',
       localWorkspace: { displayName: 'local.user.js', handle: { name: 'local.user.js' } },
-      localFilePath: 'C:\\Users\\--\\secret\\local.user.js',
-      absolutePath: 'C:\\Users\\--\\secret\\local.user.js',
+      localFilePath: 'C:\\Users\\dev\\secret\\local.user.js',
+      absolutePath: 'C:\\Users\\dev\\secret\\local.user.js',
       localProject: {
         projectId: 'project-secret',
         manifest: { relativePath: 'nested/secret.user.js', code: 'window.secret = true;' },
@@ -478,7 +478,7 @@ describe('runtime import/export archive identity', () => {
       localProjectManifest: { relativePath: 'nested/secret.user.js', code: 'window.secret = true;' },
       localProjectBindingId: 'binding-project-secret',
       relativePath: 'nested/secret.user.js',
-      projectPath: 'C:\\Users\\--\\secret\\project',
+      projectPath: 'C:\\Users\\dev\\secret\\project',
     };
     const harness = createRuntimeHarness([script]);
 
@@ -512,13 +512,13 @@ describe('runtime import/export archive identity', () => {
       notes: 'portable note',
       localLibraries: [{
         id: 'local-library-helpers-1234',
-        name: 'C:\\Users\\--\\private\\helpers.js',
+        name: 'C:\\Users\\dev\\private\\helpers.js',
         code: 'globalThis.helpersReady = true;',
         sha256: 'a'.repeat(64),
         bytes: 9999,
         reviewedAt: 1_700_000_000_000,
         bindingId: 'binding-private',
-        absolutePath: 'C:\\Users\\--\\private\\helpers.js',
+        absolutePath: 'C:\\Users\\dev\\private\\helpers.js',
         handle: { name: 'helpers.js' },
       }],
     };

@@ -652,7 +652,7 @@ describe('source easycloud sync module', () => {
           mergeConflict: true,
           _registrationError: 'local registration failed',
           localWorkspaceBindingId: 'binding-local',
-          localFilePath: 'C:\\Users\\--\\secret\\local.user.js',
+          localFilePath: 'C:\\Users\\dev\\secret\\local.user.js',
         },
         createdAt: 1,
         updatedAt: 1,

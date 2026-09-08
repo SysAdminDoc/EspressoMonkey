@@ -26,7 +26,7 @@ clipping, overflow, and scroll access.
 
 ## Populated Scripts spacing and menu follow-up
 
-- Source visual truth: `C:\Users\--\Desktop\2026-08-14 18_35_45-C__Users_--_repos_kick-focus_RESEARCH.md - Notepad++.png`
+- Source visual truth: `<local>\2026-08-14 18_35_45-C__Users_--_repos_kick-focus_RESEARCH.md - Notepad++.png`
 - Rendered implementation: `assets/screenshots/dashboard-dark-populated-spacing-fixed.png`
 - Same-input comparison: `assets/design-qa/dashboard-redesign-2026-08-14/scripts-populated-spacing-comparison.png` (source left, implementation right)
 - Viewport and pixels: source 1908×908 pixels; implementation 1908×908 CSS px
@@ -63,7 +63,7 @@ unabridged.
 
 ## Popup footer large-text follow-up
 
-- Source visual truth: `assets/design-qa/popup-footer-fix-2026-08-14/source-popup.png`, preserved from the supplied `C:\Users\--\Desktop\2026-08-14 19_01_50-019ff580-9227-7070-8e45-85db1ba9c010 - File Explorer.png`
+- Source visual truth: `assets/design-qa/popup-footer-fix-2026-08-14/source-popup.png`, preserved from the supplied `<local>\2026-08-14 19_01_50-019ff580-9227-7070-8e45-85db1ba9c010 - File Explorer.png`
 - Rendered implementation: `assets/design-qa/popup-footer-fix-2026-08-14/implementation-popup-200.png`
 - Full-view comparison: `assets/design-qa/popup-footer-fix-2026-08-14/popup-footer-full-comparison.png` (source left, implementation right)
 - Focused comparison: `assets/design-qa/popup-footer-fix-2026-08-14/popup-footer-focused-comparison.png` (source left, implementation right)
